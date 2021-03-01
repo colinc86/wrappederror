@@ -1,5 +1,7 @@
 # Package 🎁'd error
 
+[![Go Tests](https://github.com/colinc86/wrappederror/actions/workflows/go-test.yml/badge.svg?branch=main)](https://github.com/colinc86/wrappederror/actions/workflows/go-test.yml) [![Go Reference](https://pkg.go.dev/badge/github.com/colinc86/wrappederror.svg)](https://pkg.go.dev/github.com/colinc86/wrappederror)
+
 Package wrappederror is an over-engineered `error` type for Go that utilizes the `error` interface's `Unwrap() error` method to chain as many errors together as you'd like. It imports no non-standard library packages, and emits no errors, ensuring you always get _your_ errors. 🎤💧
 
 ## Installing
