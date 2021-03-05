@@ -1,7 +1,9 @@
 package wrappederror
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -54,6 +56,50 @@ func TestNewWrappedError_3(t *testing.T) {
 	}
 }
 
+func TestWrappedErrorMarshalJSON(t *testing.T) {
+	e1 := errors.New("error 1")
+	e2 := New("error 2", e1)
+	e3 := New("error 3", e2)
+	e4 := New("error 4", e3)
+
+	d, err := json.Marshal(e4)
+	if err != nil {
+		t.Errorf("Error marshaling JSON: %s\n", err)
+	}
+
+	fmt.Printf("Got json: %s\n", string(d))
+
+	we := new(wError)
+	if err = json.Unmarshal(d, we); err != nil {
+		t.Errorf("Error unmarshaling JSON: %s\n", err)
+	}
+
+	if e4.Error() != we.Error() {
+		t.Error("Expected unmarshaled error.")
+	}
+}
+
+func TestWrappedErrorMarshalText(t *testing.T) {
+	e1 := errors.New("error 1")
+	e2 := New("error 2", e1)
+	e3 := New("error 3", e2)
+	e4 := New("error 4", e3)
+
+	d, err := e4.MarshalText()
+	if err != nil {
+		t.Errorf("Error marshaling text: %s\n", err)
+	}
+
+	we := &wError{}
+	if err = we.UnmarshalText(d); err != nil {
+		t.Errorf("Error unmarshaling text: %s\n", err)
+	}
+
+	if string(d) != we.Error() {
+		t.Error("Expected unmarshaled error.")
+	}
+}
+
 func TestWrappedErrorMarshalBinary(t *testing.T) {
 	e1 := errors.New("error 1")
 	e2 := New("error 2", e1)
@@ -65,7 +111,7 @@ func TestWrappedErrorMarshalBinary(t *testing.T) {
 		t.Errorf("Error marshaling binary: %s\n", err)
 	}
 
-	we := &WrappedError{}
+	we := &wError{}
 	if err = we.UnmarshalBinary(d); err != nil {
 		t.Errorf("Error unmarshaling binary: %s\n", err)
 	}

@@ -50,20 +50,20 @@ func (e *encoder) encodeError(err error) {
 }
 
 // encodeCaller encodes the caller.
-func (e *encoder) encodeCaller(c caller) {
+func (e *encoder) encodeCaller(c *caller) {
 	e.encodeString(c.fileName)
 	e.encodeString(c.functionName)
 	e.encodeInt(c.lineNumber)
 }
 
 // encodeWrappedError encodes the wrapped error.
-func (e *encoder) encodeWrappedError(we WrappedError) {
+func (e *encoder) encodeWrappedError(we wError) {
 	e.data = append(e.data, wrappedErrorFrameDelimiter)
 	e.encodeString(we.message)
 	e.encodeCaller(we.caller)
 
 	if we.inner != nil {
-		if iwe, ok := we.inner.(WrappedError); ok {
+		if iwe, ok := we.inner.(wError); ok {
 			e.encodeWrappedError(iwe)
 		} else {
 			e.encodeError(we.inner)
@@ -174,7 +174,7 @@ func (d *decoder) decodeError() (error, error) {
 	}
 
 	if delimieter == wrappedErrorFrameDelimiter {
-		we := &WrappedError{}
+		we := &wError{}
 		we.message, err = d.decodeString()
 		if err != nil {
 			return nil, err
@@ -185,7 +185,7 @@ func (d *decoder) decodeError() (error, error) {
 			return nil, err
 		}
 
-		we.caller = *c
+		we.caller = c
 		return we, nil
 	} else if delimieter == errorFrameDelimiter {
 		st, err := d.decodeString()

@@ -25,8 +25,8 @@ func newCaller(
 	fileName string,
 	functionName string,
 	lineNumber int,
-) caller {
-	return caller{
+) *caller {
+	return &caller{
 		fileName:     fileName,
 		functionName: functionName,
 		lineNumber:   lineNumber,
@@ -34,7 +34,7 @@ func newCaller(
 }
 
 // currentCaller gets the current caller with the given depth.
-func currentCaller(skip int) caller {
+func currentCaller(skip int) *caller {
 	if pc, fp, ln, ok := runtime.Caller(skip); ok {
 		_, fin := path.Split(fp)
 		if f := runtime.FuncForPC(pc); f != nil {
@@ -66,7 +66,7 @@ func (c caller) String() string {
 
 func (c caller) MarshalBinary() ([]byte, error) {
 	e := newEncoder()
-	e.encodeCaller(c)
+	e.encodeCaller(&c)
 	e.calculateCRC()
 	return e.data, nil
 }
