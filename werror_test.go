@@ -1,9 +1,8 @@
 package wrappederror
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -13,15 +12,6 @@ func TestNewWrappedError_1(t *testing.T) {
 
 	if we.Error() != outerErrorMessage {
 		t.Errorf("Expected \"%s\" but received \"%s\"\n", outerErrorMessage, we.Error())
-	}
-}
-
-func TestUnwrap(t *testing.T) {
-	e := errors.New("inner error")
-	we := New("outer error", e)
-
-	if we.Unwrap() != e {
-		t.Errorf("Expected \"%s\" but received \"%s\"\n", e, we.Unwrap())
 	}
 }
 
@@ -56,26 +46,78 @@ func TestNewWrappedError_3(t *testing.T) {
 	}
 }
 
-func TestWrappedErrorMarshalJSON(t *testing.T) {
-	e1 := errors.New("error 1")
+func TestDepth_0(t *testing.T) {
+	we := New("single error", nil)
+	if we.Depth() != 0 {
+		t.Errorf("Expected depth 0 but received %d.\n", we.Depth())
+	}
+}
+
+func TestDepth_1(t *testing.T) {
+	we := New("error 1", errors.New("error 0"))
+	if we.Depth() != 1 {
+		t.Errorf("Expected depth 1 but received %d.\n", we.Depth())
+	}
+}
+
+func TestDepth_2(t *testing.T) {
+	e0 := errors.New("error 0")
+	e1 := New("error 1", e0)
+	e2 := New("error 2", e1)
+
+	if e2.Depth() != 2 {
+		t.Errorf("Expected depth 2 but received %d.\n", e2.Depth())
+	}
+}
+
+func TestDepth_3(t *testing.T) {
+	e0 := errors.New("error 0")
+	e1 := New("error 1", e0)
 	e2 := New("error 2", e1)
 	e3 := New("error 3", e2)
-	e4 := New("error 4", e3)
 
-	d, err := json.Marshal(e4)
-	if err != nil {
-		t.Errorf("Error marshaling JSON: %s\n", err)
+	if e3.Depth() != 3 {
+		t.Errorf("Expected depth 2 but received %d.\n", e3.Depth())
 	}
+}
 
-	fmt.Printf("Got json: %s\n", string(d))
+func TestTrace(t *testing.T) {
+	// Quick check for sanity
+	e0 := errors.New("error 0")
+	e1 := New("error 1", e0)
+	e2 := New("error 2", e1)
+	e3 := New("error 3", e2)
 
-	we := new(wError)
-	if err = json.Unmarshal(d, we); err != nil {
-		t.Errorf("Error unmarshaling JSON: %s\n", err)
+	tr := e3.Trace()
+	nc := strings.Count(tr, "\n")
+	if nc != 3 {
+		t.Errorf("Expected 3 newlines but found %d.\n", nc)
 	}
+}
 
-	if e4.Error() != we.Error() {
-		t.Error("Expected unmarshaled error.")
+func TestCaller(t *testing.T) {
+	we := New("test", nil)
+	if we.File() != "werror_test.go" ||
+		we.Function() != "github.com/colinc86/wrappederror.TestCaller" ||
+		we.Line() != 101 {
+		t.Errorf("Incorrect caller: %s\n", we.(*wError).caller)
+	}
+}
+
+func TestUnwrap(t *testing.T) {
+	e := errors.New("inner error")
+	we := New("outer error", e)
+
+	if we.Unwrap() != e {
+		t.Errorf("Expected \"%s\" but received \"%s\"\n", e, we.Unwrap())
+	}
+}
+
+func TestString(t *testing.T) {
+	e0 := errors.New("error A")
+	e1 := New("error B", e0)
+	if e1.Error() != e1.String() {
+		t.Errorf("Expected equal strings %s != %s\n", e1.Error(), e1.String())
 	}
 }
 

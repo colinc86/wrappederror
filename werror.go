@@ -32,7 +32,7 @@ func New(message string, err error) WrappedError {
 func (e wError) Depth() uint {
 	if e.inner == nil {
 		return 0
-	} else if we, ok := e.inner.(wError); ok {
+	} else if we, ok := e.inner.(WrappedError); ok {
 		return we.Depth() + 1
 	}
 	return 1
@@ -58,9 +58,9 @@ func (e wError) Trace() string {
 
 	// Do some recursive stuff
 	if e.inner != nil {
-		if we, ok := e.inner.(wError); ok {
+		if we, ok := e.inner.(WrappedError); ok {
 			var p2 string
-			if we.inner == nil {
+			if we.Unwrap() == nil {
 				p2 = "└"
 			} else {
 				p2 = "├"
@@ -177,7 +177,7 @@ func (e *wError) UnmarshalBinary(d []byte) error {
 		errors = append(errors, decodedError)
 	}
 
-	topError := &wError{}
+	topError := new(wError)
 	currentError := topError
 	for _, err := range errors {
 		currentError.inner = err
