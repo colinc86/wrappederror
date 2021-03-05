@@ -54,59 +54,23 @@ func TestNewWrappedError_3(t *testing.T) {
 	}
 }
 
-func TestMarshalJSON(t *testing.T) {
-	we := New("outer error", errors.New("inner error"))
-	d, err := we.MarshalJSON()
+func TestWrappedErrorMarshalBinary(t *testing.T) {
+	e1 := errors.New("error 1")
+	e2 := New("error 2", e1)
+	e3 := New("error 3", e2)
+	e4 := New("error 4", e3)
+
+	d, err := e4.MarshalBinary()
 	if err != nil {
-		t.Errorf("Unable to marshal wrapped error: %s\n", err)
-		return
+		t.Errorf("Error marshaling binary: %s\n", err)
 	}
 
-	if len(d) != 24 {
-		t.Errorf("Expected byte length 24 but received %d\n", len(d))
-		return
-	}
-}
-
-func TestUnmarshalJSON_1(t *testing.T) {
-	outerErrorText := "outer error"
-	innerErrorText := "inner error"
-	text := outerErrorText + ": " + innerErrorText
-	d := []byte(text)
-
-	we := new(WrappedError)
-	if err := we.UnmarshalJSON(d); err != nil {
-		t.Errorf("Unable to unmarshal wrapped error: %s\n", err)
-		return
+	we := &WrappedError{}
+	if err = we.UnmarshalBinary(d); err != nil {
+		t.Errorf("Error unmarshaling binary: %s\n", err)
 	}
 
-	if we.message != outerErrorText {
-		t.Errorf("Expected outer error \"%s\" but received \"%s\"\n", outerErrorText, we.message)
-		return
-	}
-
-	if we.err.Error() != innerErrorText {
-		t.Errorf("Expected inner error \"%s\" but received \"%s\"\n", innerErrorText, we.err.Error())
-		return
-	}
-}
-
-func TestUnmarshalJSON_2(t *testing.T) {
-	var d []byte
-
-	we := new(WrappedError)
-	if err := we.UnmarshalJSON(d); err != nil {
-		t.Errorf("Unable to unmarshal wrapped error: %s\n", err)
-		return
-	}
-
-	if we.message != "" {
-		t.Errorf("Expected outer error \"\" but received \"%s\"\n", we.message)
-		return
-	}
-
-	if we.err != nil {
-		t.Errorf("Expected inner error to be nil but received \"%s\"\n", we.err.Error())
-		return
+	if e4.Error() != we.Error() {
+		t.Error("Expected unmarshaled error.")
 	}
 }
