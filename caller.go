@@ -10,10 +10,17 @@ import (
 type Caller interface {
 	fmt.Stringer
 
+	// The file the caller was created in.
 	File() string
+
+	// The function the caller was created in.
 	Function() string
+
+	// The line the caller was created on.
 	Line() int
 }
+
+// Caller implementation
 
 // Values to use when we can't get components of the caller.
 const (
@@ -22,19 +29,14 @@ const (
 	callerLineNumberUnknown   int    = 0
 )
 
-// Used to encode callers in to binary data.
-type callerGob struct {
-	Fi string
-	Fu string
-	Li int
-}
-
 // A type containing call information.
 type caller struct {
 	fileName     string
 	functionName string
 	lineNumber   int
 }
+
+// Initializers
 
 // newCaller creates a new caller with the specified components.
 func newCaller(
@@ -48,6 +50,8 @@ func newCaller(
 		lineNumber:   lineNumber,
 	}
 }
+
+// Methods
 
 // currentCaller gets the current caller with the given depth.
 func currentCaller(skip int) *caller {
