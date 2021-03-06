@@ -97,7 +97,7 @@ func TestTrace(t *testing.T) {
 
 func TestCaller(t *testing.T) {
 	we := New(nil, "test")
-	if we.Caller().File() != "error_test.go" ||
+	if we.Caller().File() != "werror_test.go" ||
 		we.Caller().Function() != "github.com/colinc86/wrappederror.TestCaller" {
 		t.Errorf("Incorrect caller: %s\n", we.(*wError).caller)
 	}

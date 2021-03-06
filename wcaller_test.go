@@ -11,7 +11,7 @@ func TestCurrentCaller(t *testing.T) {
 		t.Errorf("Incorrect function name: %s\n", c.functionName)
 	}
 
-	if c.fileName != "caller_test.go" {
+	if c.fileName != "wcaller_test.go" {
 		t.Errorf("Incorrect file name: %s\n", c.fileName)
 	}
 
