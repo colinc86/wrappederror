@@ -6,55 +6,54 @@ import (
 	"testing"
 )
 
-func TestNewWrappedError_1(t *testing.T) {
+func TestNewError_1(t *testing.T) {
 	outerErrorMessage := "outer error"
-	we := New(outerErrorMessage, nil)
+	we := New(nil, outerErrorMessage)
 
 	if we.Error() != outerErrorMessage {
 		t.Errorf("Expected \"%s\" but received \"%s\"\n", outerErrorMessage, we.Error())
 	}
 }
 
-func TestNewWrappedError_2(t *testing.T) {
+func TestNewError_2(t *testing.T) {
 	innerErrorMessage := "inner error"
 	e := errors.New(innerErrorMessage)
 
 	outerErrorMessage := "outer error"
-	we := New(outerErrorMessage, e)
+	we := New(e, outerErrorMessage)
 
-	composite := outerErrorMessage + ": " + innerErrorMessage
-	if we.Error() != composite {
-		t.Errorf("Expected \"%s\" but received \"%s\"\n", composite, we.Error())
+	if we.Error() != outerErrorMessage {
+		t.Errorf("Expected \"%s\" but received \"%s\"\n", outerErrorMessage, we.Error())
 		return
 	}
 }
 
-func TestNewWrappedError_3(t *testing.T) {
+func TestNewError_3(t *testing.T) {
 	innerErrorMessage := "inner error"
 	e := errors.New(innerErrorMessage)
 
 	middleErrorMessage := "middle error"
-	wem := New(middleErrorMessage, e)
+	wem := New(e, middleErrorMessage)
 
 	outerErrorMessage := "outer error"
-	weo := New(outerErrorMessage, wem)
+	weo := New(wem, outerErrorMessage)
 
 	composite := outerErrorMessage + ": " + middleErrorMessage + ": " + innerErrorMessage
-	if weo.Error() != composite {
-		t.Errorf("Expected \"%s\" but received \"%s\"\n", composite, weo.Error())
+	if weo.String() != composite {
+		t.Errorf("Expected \"%s\" but received \"%s\"\n", composite, weo.String())
 		return
 	}
 }
 
 func TestDepth_0(t *testing.T) {
-	we := New("single error", nil)
+	we := New(nil, "single error")
 	if we.Depth() != 0 {
 		t.Errorf("Expected depth 0 but received %d.\n", we.Depth())
 	}
 }
 
 func TestDepth_1(t *testing.T) {
-	we := New("error 1", errors.New("error 0"))
+	we := New(errors.New("error 0"), "error 1")
 	if we.Depth() != 1 {
 		t.Errorf("Expected depth 1 but received %d.\n", we.Depth())
 	}
@@ -62,8 +61,8 @@ func TestDepth_1(t *testing.T) {
 
 func TestDepth_2(t *testing.T) {
 	e0 := errors.New("error 0")
-	e1 := New("error 1", e0)
-	e2 := New("error 2", e1)
+	e1 := New(e0, "error 1")
+	e2 := New(e1, "error 2")
 
 	if e2.Depth() != 2 {
 		t.Errorf("Expected depth 2 but received %d.\n", e2.Depth())
@@ -72,9 +71,9 @@ func TestDepth_2(t *testing.T) {
 
 func TestDepth_3(t *testing.T) {
 	e0 := errors.New("error 0")
-	e1 := New("error 1", e0)
-	e2 := New("error 2", e1)
-	e3 := New("error 3", e2)
+	e1 := New(e0, "error 1")
+	e2 := New(e1, "error 2")
+	e3 := New(e2, "error 3")
 
 	if e3.Depth() != 3 {
 		t.Errorf("Expected depth 2 but received %d.\n", e3.Depth())
@@ -84,9 +83,9 @@ func TestDepth_3(t *testing.T) {
 func TestTrace(t *testing.T) {
 	// Quick check for sanity
 	e0 := errors.New("error 0")
-	e1 := New("error 1", e0)
-	e2 := New("error 2", e1)
-	e3 := New("error 3", e2)
+	e1 := New(e0, "error 1")
+	e2 := New(e1, "error 2")
+	e3 := New(e2, "error 3")
 
 	tr := e3.Trace()
 	nc := strings.Count(tr, "\n")
@@ -96,36 +95,28 @@ func TestTrace(t *testing.T) {
 }
 
 func TestCaller(t *testing.T) {
-	we := New("test", nil)
-	if we.File() != "werror_test.go" ||
-		we.Function() != "github.com/colinc86/wrappederror.TestCaller" ||
-		we.Line() != 101 {
+	we := New(nil, "test")
+	if we.Caller().File() != "werror_test.go" ||
+		we.Caller().Function() != "github.com/colinc86/wrappederror.TestCaller" ||
+		we.Caller().Line() != 98 {
 		t.Errorf("Incorrect caller: %s\n", we.(*wError).caller)
 	}
 }
 
 func TestUnwrap(t *testing.T) {
 	e := errors.New("inner error")
-	we := New("outer error", e)
+	we := New(e, "outer error")
 
 	if we.Unwrap() != e {
 		t.Errorf("Expected \"%s\" but received \"%s\"\n", e, we.Unwrap())
 	}
 }
 
-func TestString(t *testing.T) {
-	e0 := errors.New("error A")
-	e1 := New("error B", e0)
-	if e1.Error() != e1.String() {
-		t.Errorf("Expected equal strings %s != %s\n", e1.Error(), e1.String())
-	}
-}
-
-func TestWrappedErrorMarshalText(t *testing.T) {
+func TestErrorMarshalText(t *testing.T) {
 	e1 := errors.New("error 1")
-	e2 := New("error 2", e1)
-	e3 := New("error 3", e2)
-	e4 := New("error 4", e3)
+	e2 := New(e1, "error 2")
+	e3 := New(e2, "error 3")
+	e4 := New(e3, "error 4")
 
 	d, err := e4.MarshalText()
 	if err != nil {
@@ -137,18 +128,15 @@ func TestWrappedErrorMarshalText(t *testing.T) {
 		t.Errorf("Error unmarshaling text: %s\n", err)
 	}
 
-	if string(d) != we.Error() {
+	if string(d) != we.String() {
 		t.Error("Expected unmarshaled error.")
 	}
 }
 
-func TestWrappedErrorMarshalBinary(t *testing.T) {
-	e1 := errors.New("error 1")
-	e2 := New("error 2", e1)
-	e3 := New("error 3", e2)
-	e4 := New("error 4", e3)
+func TestErrorMarshalBinary(t *testing.T) {
+	e := New(nil, "test")
 
-	d, err := e4.MarshalBinary()
+	d, err := e.MarshalBinary()
 	if err != nil {
 		t.Errorf("Error marshaling binary: %s\n", err)
 	}
@@ -156,9 +144,5 @@ func TestWrappedErrorMarshalBinary(t *testing.T) {
 	we := &wError{}
 	if err = we.UnmarshalBinary(d); err != nil {
 		t.Errorf("Error unmarshaling binary: %s\n", err)
-	}
-
-	if e4.Error() != we.Error() {
-		t.Error("Expected unmarshaled error.")
 	}
 }

@@ -1,10 +1,24 @@
 package wrappederror
 
 import (
+	"encoding"
 	"fmt"
 	"path"
 	"runtime"
+
+	"github.com/colinc86/coding"
 )
+
+// Caller types contain call information.
+type Caller interface {
+	fmt.Stringer
+	encoding.BinaryMarshaler
+	encoding.BinaryUnmarshaler
+
+	File() string
+	Function() string
+	Line() int
+}
 
 // Values to use when we can't get components of the caller.
 const (
@@ -62,28 +76,54 @@ func (c caller) String() string {
 	)
 }
 
+// Caller interface methods
+
+func (c caller) File() string {
+	return c.fileName
+}
+
+func (c caller) Function() string {
+	return c.functionName
+}
+
+func (c caller) Line() int {
+	return c.lineNumber
+}
+
 // BinaryMarshaler and BinaryUnmarshaler interface methods
 
 func (c caller) MarshalBinary() ([]byte, error) {
-	e := newEncoder()
-	e.encodeCaller(&c)
-	e.calculateCRC()
-	return e.data, nil
+	e := coding.NewEncoder()
+	e.EncodeString(c.fileName)
+	e.EncodeString(c.functionName)
+	e.EncodeInt(c.lineNumber)
+	return e.Data(), nil
 }
 
 func (c *caller) UnmarshalBinary(b []byte) error {
-	d := newDecoder(b)
-	if !d.validate() {
-		return ErrCRC
-	}
-
-	ca, err := d.decodeCaller()
-	if err != nil {
+	d := coding.NewDecoder(b)
+	if err := d.Validate(); err != nil {
 		return err
 	}
 
-	c.fileName = ca.fileName
-	c.functionName = ca.functionName
-	c.lineNumber = ca.lineNumber
+	var err error
+	var fin string
+	if fin, err = d.DecodeString(); err != nil {
+		return err
+	}
+	c.fileName = fin
+
+	var fun string
+	if fun, err = d.DecodeString(); err != nil {
+		return err
+	}
+	c.functionName = fun
+
+	var ln int
+	if ln, err = d.DecodeInt(); err != nil {
+		return err
+	}
+	c.lineNumber = ln
+
 	return nil
 }

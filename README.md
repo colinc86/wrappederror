@@ -12,46 +12,114 @@ Navigate to your module and execute the following.
 $ go get github.com/colinc86/wrappederror
 ```
 
-## Example
+## Using
+
+Import the package:
 
 ```go
-package main
+import we "github.com/colinc86/wrappederror"
+```
 
-import (
-	"errors"
-	"fmt"
+### Wrapping Errors
 
-	we "github.com/colinc86/wrappederror"
-)
+Use the package's `Error` type to wrap errors and give them context.
 
-func main() {
-	e := functionA()
-	if e != nil {
-		fmt.Printf("Got error: %s\n\n", e)
-		fmt.Printf("Got trace:\n%s\n", e.Trace())
+```go
+e := we.New(err, "oh no")
+```
+
+An error's context doesn't have to be a string.
+
+```go
+myObj := &MyObj{}
+if data, err := json.Marshal(myObj); err != nil {
+	return we.New(err, myObj)
+}
+```
+
+### Examining Errors
+
+There are a few ways to probe an `Error` for information...
+
+#### Caller
+
+Access the `Caller()` method to get information about where the error was created.
+
+```go
+fmt.Printf("Error at %s: %s.\n", e.Caller(), e.Error())
+```
+
+Output:
+
+```
+Error at main.function (main.go:19): oh no
+```
+
+#### Depth
+
+Wrapped errors have _depth_. That is, the number of errors after itself in the error chain.
+
+For eample, the following -
+
+```go
+e0 := we.New(nil, "error A")
+e1 := we.New(e0, "error B")
+e2 := we.New(e1, "error C")
+
+fmt.Printf("e0 depth: %d\n", e0.Depth())
+fmt.Printf("e1 depth: %d\n", e1.Depth())
+fmt.Printf("e2 depth: %d\n", e2.Depth())
+```
+
+outputs
+
+```
+e0 depth: 0
+e1 depth: 1
+e2 depth: 2
+```
+
+#### Walk
+
+Step through the error chain with `Walk`.
+
+```go
+e2.Walk(func (err error) {
+	// Do something with the error.
+
+	if errors.Unwrap(err) == nil {
+		// This is the last error in the chain.
+		// Do something else.
 	}
-}
-
-func functionA() we.WrappedError {
-	return we.New("error A", functionB())
-}
-
-func functionB() we.WrappedError {
-	return we.New("error B", functionC())
-}
-
-func functionC() error {
-	return errors.New("error C")
-}
+})
 ```
 
-Output
+#### Trace
+
+Get an error trace by calling the `Trace` method. This method returns a prettified string representation of an error.
+
+```go
+fmt.Println(e2.Trace())
+```
+
+Output:
 
 ```
-Got error: error A: error B: error C
+┌ 2: main.function (main.go:61) error C
+├ 1: main.function (main.go:60) error B
+└ 0: main.function (main.go:59) error A
+```
 
-Got trace:
-┌ 2: main.functionA (main.go:19) error A
-├ 1: main.functionB (main.go:23) error B
-└ 0: error C
+#### String
+
+Calling `String` returns an inline string representation of an error.
+
+```go
+fmt.Println(e2.String())
+```
+
+Output:
+
+```
+error C: error B: error A
 ```
