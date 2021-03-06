@@ -110,9 +110,23 @@ Output:
 └ 0: main.function (main.go:59) error A
 ```
 
+#### Error
+
+The error's `Error` method returns the error's context as a string.
+
+```go
+fmt.Println(e2.Error())
+```
+
+Output:
+
+```
+error C
+```
+
 #### String
 
-Calling `String` returns an inline string representation of an error.
+Calling `String` returns an inline string representation of the entire error chain.
 
 ```go
 fmt.Println(e2.String())
