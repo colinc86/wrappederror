@@ -50,21 +50,7 @@ if data, err := json.Marshal(myObj); err != nil {
 
 ### Examining Errors
 
-There are a few ways to probe an `Error` for information...
-
-#### Caller
-
-Access the `Caller()` method to get information about where the error was created.
-
-```go
-fmt.Printf("%s: %s", e.Caller(), e.Error())
-```
-
-Output:
-
-```
-main.function (main.go:19): oh no: some error
-```
+There are many ways to probe an `Error` for information...
 
 #### Depth
 
@@ -82,8 +68,6 @@ fmt.Printf("e1 depth: %d\n", e1.Depth())
 fmt.Printf("e2 depth: %d\n", e2.Depth())
 ```
 
-Output:
-
 ```
 e0 depth: 0
 e1 depth: 1
@@ -92,7 +76,7 @@ e2 depth: 2
 
 #### Walk
 
-Step through the error chain with `Walk`.
+Step through the error chain with the `Walk` method.
 
 ```go
 e2.Walk(func (err error) bool {
@@ -115,13 +99,11 @@ e2.Walk(func (err error) bool {
 
 #### Trace
 
-Get an error trace by calling the `Trace` method. This method returns a prettified string representation of an error.
+Get an error trace by calling the `Trace` method. This method returns a prettified string representation of an error with caller information.
 
 ```go
 fmt.Println(e2.Trace())
 ```
-
-Output:
 
 ```
 ┌ 2: main.function (main.go:61) error C
@@ -129,20 +111,82 @@ Output:
 └ 0: main.function (main.go:59) error A
 ```
 
-#### Error
+#### Error and Context
 
 The error's `Error` method returns an inline string representation of the entire error chain.
-
-To only examine the receivers context, use the `Context() interface{}` method.
 
 ```go
 fmt.Println(e2.Error())
 ```
 
-Output:
-
 ```
 error C: error B: error A
+```
+
+To only examine the receivers context, use the `Context() interface{}` method.
+
+```go
+fmt.Printf("%+v", e.Context())
+```
+
+```
+error C
+```
+
+#### Caller
+
+Errors contain call information accessible from the `Caller` method. 
+
+```go
+fmt.Println(e.Caller())
+```
+
+```
+main.function (main.go:19)
+```
+
+Along with basic file, function and line information, you can use the caller to provide a stack trace of the goroutine the error was created on.
+
+```go
+fmt.Println(e.Caller().Stack())
+```
+
+```
+goroutine 18 [running]:
+runtime/debug.Stack(0x0, 0x0, 0x0)
+	/usr/local/Cellar/go/1.16/libexec/src/runtime/debug/stack.go:24 +0xa5
+github.com/colinc86/wrappederror.currentCaller(0x1, 0x0)
+	/Users/colin/Documents/Programming/Go/wrappederror/caller.go:65 +0x45
+github.com/colinc86/wrappederror.TestStack(0xc000082600)
+	/Users/colin/Documents/Programming/Go/wrappederror/caller_test.go:25 +0x3f
+testing.tRunner(0xc000082600, 0x11acff0)
+	/usr/local/Cellar/go/1.16/libexec/src/testing/testing.go:1194 +0x1a3
+created by testing.(*T).Run
+	/usr/local/Cellar/go/1.16/libexec/src/testing/testing.go:1239 +0x63c
+```
+
+#### Process
+
+Use the `Process()` method to get information about the current process. Memory statistics are also available with the `e.Process().Memory()` method but don't print in the process's string value.
+
+```go
+fmt.Println(e.Process())
+```
+
+```
+goroutines: 2, cpus: 16, cgos: 0
+```
+
+#### Debugging
+
+It is also possible to trigger a breakpoint programatically when an error is received using the `Process` type.
+
+```go
+// doSomething returns a wrapped error
+if we := doSomething(); we != nil {
+	we.Process().Break()
+	return we
+}
 ```
 
 ## Contributing

@@ -20,6 +20,12 @@ type Error interface {
 	// function name and line number.
 	Caller() Caller
 
+	// Process returns the error's process.
+	//
+	// Use this value to examine the current process's information such as number
+	// of goroutines when the error was created.
+	Process() Process
+
 	// The error's context.
 	//
 	// When an error is wrapped, it is given context. An error's context can be a
@@ -67,6 +73,9 @@ type wError struct {
 
 	// The caller that invoked the `New` function.
 	caller *caller
+
+	// Information about the current process when the error was created.
+	process *process
 }
 
 // Initializers
@@ -77,6 +86,7 @@ func New(err error, context interface{}) Error {
 		context: context,
 		inner:   err,
 		caller:  currentCaller(2),
+		process: currentProcess(),
 	}
 }
 
@@ -88,6 +98,10 @@ func (e wError) Context() interface{} {
 
 func (e wError) Caller() Caller {
 	return e.caller
+}
+
+func (e wError) Process() Process {
+	return e.process
 }
 
 func (e wError) Walk(step func(err error) bool) {

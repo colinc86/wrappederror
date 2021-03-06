@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"runtime"
+	"runtime/debug"
 )
 
 // Caller types contain call information.
@@ -18,6 +19,9 @@ type Caller interface {
 
 	// The line the caller was created on.
 	Line() int
+
+	// The stack trace of the calling goroutine.
+	Stack() string
 }
 
 // Caller implementation
@@ -34,6 +38,7 @@ type caller struct {
 	fileName     string
 	functionName string
 	lineNumber   int
+	stackTrace   []byte
 }
 
 // Initializers
@@ -43,11 +48,13 @@ func newCaller(
 	fileName string,
 	functionName string,
 	lineNumber int,
+	stackTrace []byte,
 ) *caller {
 	return &caller{
 		fileName:     fileName,
 		functionName: functionName,
 		lineNumber:   lineNumber,
+		stackTrace:   stackTrace,
 	}
 }
 
@@ -55,12 +62,14 @@ func newCaller(
 
 // currentCaller gets the current caller with the given depth.
 func currentCaller(skip int) *caller {
+	st := debug.Stack()
+
 	if pc, fp, ln, ok := runtime.Caller(skip); ok {
 		_, fin := path.Split(fp)
 		if f := runtime.FuncForPC(pc); f != nil {
-			return newCaller(fin, f.Name(), ln)
+			return newCaller(fin, f.Name(), ln, st)
 		}
-		return newCaller(fin, callerFunctionNameUnknown, ln)
+		return newCaller(fin, callerFunctionNameUnknown, ln, st)
 	}
 
 	// *Wah, wah, wah* sound effect.
@@ -68,6 +77,7 @@ func currentCaller(skip int) *caller {
 		callerFileNameUnknown,
 		callerFunctionNameUnknown,
 		callerLineNumberUnknown,
+		st,
 	)
 }
 
@@ -94,4 +104,8 @@ func (c caller) Function() string {
 
 func (c caller) Line() int {
 	return c.lineNumber
+}
+
+func (c caller) Stack() string {
+	return string(c.stackTrace)
 }
