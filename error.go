@@ -1,6 +1,9 @@
 package wrappederror
 
-import "encoding"
+import (
+	"encoding"
+	"time"
+)
 
 // Error types wrap an error.
 type Error interface {
@@ -19,6 +22,9 @@ type Error interface {
 	// Use this value to examine the current process's information such as number
 	// of goroutines when the error was created.
 	Process() Process
+
+	// Time returns the time that this error was created.
+	Time() time.Time
 
 	// The error's context.
 	//
