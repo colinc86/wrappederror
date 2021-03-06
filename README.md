@@ -4,7 +4,24 @@
 
 Package wrappederror is an `error` type for Go that utilizes the `errors` package's `Unwrap`, `Is` and `As` methods to chain as many errors together as you'd like.
 
-It contains handy methods to examine the error chain and plays nicely with other `error` types.
+It contains handy methods to examine the error chain, the stack and your source, and plays nicely with other `error` types.
+
+## Features
+
+- [x] Wrap/unwrap errors
+- [x] Give errors context
+- [x] Examine error chain
+  - [x] Walk
+  - [x] Depth
+  - [x] Prettified trace
+- [x] Examine caller
+  - [x] File, function and line
+  - [x] Stack trace
+  - [x] Source code
+- [x] Examine process
+  - [x] Num routines, CPUs and cgo calls
+  - [x] Memory statistics
+  - [x] Programmatic breakpoints
 
 ## Installing
 
@@ -44,7 +61,7 @@ An error's context doesn't have to be a string.
 ```go
 myObj := &MyObj{}
 if data, err := json.Marshal(myObj); err != nil {
-	return we.New(err, myObj)
+  return we.New(err, myObj)
 }
 ```
 
@@ -80,20 +97,20 @@ Step through the error chain with the `Walk` method.
 
 ```go
 e2.Walk(func (err error) bool {
-	// Do something with the error.
+  // Do something with the error.
 
-	if err == ErrSomeParticularType {
-		// Don't continue with the walk.
-		return false
-	}
+  if err == ErrSomeParticularType {
+    // Don't continue with the walk.
+    return false
+  }
 
-	if errors.Unwrap(err) == nil {
-		// This is the last error in the chain.
-		// Do something else.
-	}
+  if errors.Unwrap(err) == nil {
+    // This is the last error in the chain.
+    // Do something else.
+  }
 
-	// Continue with the walk.
-	return true
+  // Continue with the walk.
+  return true
 })
 ```
 
@@ -126,7 +143,7 @@ error C: error B: error A
 To only examine the receivers context, use the `Context() interface{}` method.
 
 ```go
-fmt.Printf("%+v", e.Context())
+fmt.Printf("%+v", e2.Context())
 ```
 
 ```
@@ -138,7 +155,7 @@ error C
 Errors contain call information accessible from the `Caller` method. 
 
 ```go
-fmt.Println(e.Caller())
+fmt.Println(e2.Caller())
 ```
 
 ```
@@ -154,15 +171,39 @@ fmt.Println(e.Caller().Stack())
 ```
 goroutine 18 [running]:
 runtime/debug.Stack(0x0, 0x0, 0x0)
-	/usr/local/Cellar/go/1.16/libexec/src/runtime/debug/stack.go:24 +0xa5
+  /usr/local/Cellar/go/1.16/libexec/src/runtime/debug/stack.go:24 +0xa5
 github.com/colinc86/wrappederror.currentCaller(0x1, 0x0)
-	/Users/colin/Documents/Programming/Go/wrappederror/caller.go:65 +0x45
+  /Users/colin/Documents/Programming/Go/wrappederror/caller.go:65 +0x45
 github.com/colinc86/wrappederror.TestStack(0xc000082600)
-	/Users/colin/Documents/Programming/Go/wrappederror/caller_test.go:25 +0x3f
+  /Users/colin/Documents/Programming/Go/wrappederror/caller_test.go:25 +0x3f
 testing.tRunner(0xc000082600, 0x11acff0)
-	/usr/local/Cellar/go/1.16/libexec/src/testing/testing.go:1194 +0x1a3
+  /usr/local/Cellar/go/1.16/libexec/src/testing/testing.go:1194 +0x1a3
 created by testing.(*T).Run
-	/usr/local/Cellar/go/1.16/libexec/src/testing/testing.go:1239 +0x63c
+  /usr/local/Cellar/go/1.16/libexec/src/testing/testing.go:1239 +0x63c
+```
+
+When debugging, the caller type also collects source code information.
+
+```go
+fmt.Println(e2.Caller().Source())
+```
+
+```
+...
+e0 := we.New(nil, "error A")
+e1 := we.New(e0, "error B")
+e2 := we.New(e1, "error C")
+
+fmt.Printf("e0 depth: %d\n", e0.Depth())
+...
+```
+
+By default, when possible, the caller collects the immediate two lines above and below the caller. If you want more or less information you can set (and check) the radius with the `SetSourceFragmentRadius(radius int)` and `SourceFragmentRadius() int` functions.
+
+```go
+if we.SourceFragmentRadius() != 5 {
+  we.SetSourceFragmentRadius(5)
+}
 ```
 
 #### Process
@@ -183,10 +224,25 @@ It is also possible to trigger a breakpoint programatically when an error is rec
 
 ```go
 // doSomething returns a wrapped error
-if we := doSomething(); we != nil {
-	we.Process().Break()
-	return we
+if e := doSomething(); e != nil {
+  e.Process().Break()
+  return we
 }
+```
+
+By default, all calls to `Process.Break` are ignored. A call to `SetIgnoreBreakpoints(false)` must happen before `Process` types will attempt to break.
+
+```go
+if !we.IgnoreBreakpoints() {
+  we.SetIgnoreBreakpoints(true) // Ignore all breakpoints
+}
+
+e := New(nil, err)
+e.Break() // Does nothing
+
+we.SetIgnoreBreakpoints(false) // Break on calls to Break
+
+e.Break() // Time to debug!
 ```
 
 ## Contributing

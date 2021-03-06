@@ -2,6 +2,7 @@ package wrappederror
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -64,6 +65,7 @@ func TestDepth_2(t *testing.T) {
 	e0 := errors.New("error 0")
 	e1 := New(e0, "error 1")
 	e2 := New(e1, "error 2")
+	fmt.Println(e1.Caller().Source())
 
 	if e2.Depth() != 2 {
 		t.Errorf("Expected depth 2 but received %d.\n", e2.Depth())

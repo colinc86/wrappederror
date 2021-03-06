@@ -3,6 +3,7 @@ package wrappederror
 import (
 	"fmt"
 	"runtime"
+	"sync"
 )
 
 // Values to use when we can't get components of the process.
@@ -11,6 +12,13 @@ const (
 	processCPUsNumberUnknown     int = -1
 	processCGONumberUnknown      int = 0
 )
+
+// Whether or not process types should ignore breakpoints when their `Break`
+// method is called.
+var ignoreBreakpoints = true
+
+// The mutex to use when accessing the ignoreBreakpoints variable.
+var ignoreBreakpointsMutex = &sync.RWMutex{}
 
 // A type containing process information.
 type wProcess struct {
@@ -82,5 +90,9 @@ func (p wProcess) Memory() *runtime.MemStats {
 }
 
 func (p wProcess) Break() {
+	if IgnoreBreakpoints() {
+		return
+	}
+
 	runtime.Breakpoint()
 }

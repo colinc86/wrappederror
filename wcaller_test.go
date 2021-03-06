@@ -43,3 +43,10 @@ func TestCallerStack(t *testing.T) {
 		t.Error("Expected a stack trace.")
 	}
 }
+
+func TestCallerSource(t *testing.T) {
+	c := currentCaller(1)
+	if c.Source() == "" {
+		t.Error("Expected a source trace.")
+	}
+}
