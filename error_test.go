@@ -22,8 +22,9 @@ func TestNewError_2(t *testing.T) {
 	outerErrorMessage := "outer error"
 	we := New(e, outerErrorMessage)
 
-	if we.Error() != outerErrorMessage {
-		t.Errorf("Expected \"%s\" but received \"%s\"\n", outerErrorMessage, we.Error())
+	composite := outerErrorMessage + ": " + innerErrorMessage
+	if we.Error() != composite {
+		t.Errorf("Expected \"%s\" but received \"%s\"\n", composite, we.Error())
 		return
 	}
 }
@@ -39,8 +40,8 @@ func TestNewError_3(t *testing.T) {
 	weo := New(wem, outerErrorMessage)
 
 	composite := outerErrorMessage + ": " + middleErrorMessage + ": " + innerErrorMessage
-	if weo.String() != composite {
-		t.Errorf("Expected \"%s\" but received \"%s\"\n", composite, weo.String())
+	if weo.Error() != composite {
+		t.Errorf("Expected \"%s\" but received \"%s\"\n", composite, weo.Error())
 		return
 	}
 }
@@ -96,9 +97,8 @@ func TestTrace(t *testing.T) {
 
 func TestCaller(t *testing.T) {
 	we := New(nil, "test")
-	if we.Caller().File() != "werror_test.go" ||
-		we.Caller().Function() != "github.com/colinc86/wrappederror.TestCaller" ||
-		we.Caller().Line() != 98 {
+	if we.Caller().File() != "error_test.go" ||
+		we.Caller().Function() != "github.com/colinc86/wrappederror.TestCaller" {
 		t.Errorf("Incorrect caller: %s\n", we.(*wError).caller)
 	}
 }
@@ -128,21 +128,7 @@ func TestErrorMarshalText(t *testing.T) {
 		t.Errorf("Error unmarshaling text: %s\n", err)
 	}
 
-	if string(d) != we.String() {
+	if string(d) != we.Error() {
 		t.Error("Expected unmarshaled error.")
-	}
-}
-
-func TestErrorMarshalBinary(t *testing.T) {
-	e := New(nil, "test")
-
-	d, err := e.MarshalBinary()
-	if err != nil {
-		t.Errorf("Error marshaling binary: %s\n", err)
-	}
-
-	we := &wError{}
-	if err = we.UnmarshalBinary(d); err != nil {
-		t.Errorf("Error unmarshaling binary: %s\n", err)
 	}
 }

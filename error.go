@@ -3,22 +3,16 @@ package wrappederror
 
 import (
 	"encoding"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/colinc86/coding"
 )
 
 // Error types wrap an error.
 type Error interface {
 	error
-	fmt.Stringer
 	encoding.TextMarshaler
 	encoding.TextUnmarshaler
-	encoding.BinaryMarshaler
-	encoding.BinaryUnmarshaler
 
 	// Caller returns the error's caller.
 	Caller() Caller
@@ -154,10 +148,23 @@ func (e wError) Trace() string {
 // Error interface methods
 
 func (e wError) Error() string {
-	if e.context == nil {
-		return ""
-	}
-	return fmt.Sprintf("%+v", e.context)
+	var s string
+	e.Walk(func(err error) bool {
+		if we, ok := err.(wError); ok {
+			s += fmt.Sprintf("%+v", we.Context())
+		} else if we, ok := err.(*wError); ok {
+			s += fmt.Sprintf("%+v", we.Context())
+		} else {
+			s += err.Error()
+		}
+
+		if errors.Unwrap(err) != nil {
+			s += ": "
+		}
+
+		return true
+	})
+	return s
 }
 
 func (e wError) Unwrap() error {
@@ -189,27 +196,11 @@ func (e wError) Is(target error) bool {
 	return is
 }
 
-// Stringer interface methods
-
-func (e wError) String() string {
-	var s string
-	e.Walk(func(err error) bool {
-		s += err.Error()
-
-		if errors.Unwrap(err) != nil {
-			s += ": "
-		}
-
-		return true
-	})
-	return s
-}
-
 // TextMarshaler and TextUnmarshaler interface methods
 
 // MarshalText marshals the wrapped error in to text, but not JSON or binary.
 func (e wError) MarshalText() ([]byte, error) {
-	return []byte(e.String()), nil
+	return []byte(e.Error()), nil
 }
 
 // UnmarshalText unmarshals in to a wrapped error. Since the wrapped error
@@ -233,112 +224,5 @@ func (e *wError) UnmarshalText(b []byte) error {
 		e.inner = we
 	}
 
-	return nil
-}
-
-// BinaryMarshaler and BinaryUnmarshaler interface methods
-
-// MarshalBinary marshals the wrapped error in to binary.
-func (e wError) MarshalBinary() ([]byte, error) {
-	en := coding.NewEncoder()
-	e.Walk(func(err error) bool {
-		if we, ok := err.(wError); ok {
-			// Is this error a Error?
-			en.EncodeBool(true)
-
-			// Attempt to marshal the context in to JSON data
-			if jsonData, jsonErr := json.Marshal(we.Context()); jsonErr == nil {
-				en.EncodeData(jsonData)
-			} else {
-				en.EncodeData(nil)
-			}
-
-			// Attempt to marshal the caller in to binary data
-			if callerData, callerErr := we.Caller().MarshalBinary(); callerErr == nil {
-				en.EncodeData(callerData)
-			} else {
-				en.EncodeData(nil)
-			}
-		} else {
-			// TODO: Figure out how to marshal/unmarshal any error type
-			en.EncodeBool(false)
-			en.EncodeString(err.Error())
-		}
-		return true
-	})
-
-	return en.Compress()
-}
-
-// UnmarshalBinary unmarshals the wrapped error from binary.
-func (e *wError) UnmarshalBinary(d []byte) error {
-	de := coding.NewDecoder(d)
-	if err := de.Decompress(); err != nil {
-		return err
-	}
-
-	if err := de.Validate(); err != nil {
-		return err
-	}
-
-	var errs []error
-	for {
-		isWError, err := de.DecodeBool()
-		if err != nil {
-			if err == coding.ErrEOB {
-				break
-			}
-			return err
-		}
-
-		if isWError {
-			ctxData, ctxErr := de.DecodeData()
-			if ctxErr != nil {
-				return ctxErr
-			}
-
-			ctx := new(interface{})
-			jsonErr := json.Unmarshal(ctxData, ctx)
-			if jsonErr != nil {
-				return jsonErr
-			}
-
-			callerData, callerErr := de.DecodeData()
-			if callerErr != nil {
-				return callerErr
-			}
-
-			caller := new(caller)
-			calUnmErr := caller.UnmarshalBinary(callerData)
-			if calUnmErr != nil {
-				return calUnmErr
-			}
-
-			errs = append(errs, &wError{ctx, nil, caller})
-		} else {
-			errStr, err := de.DecodeString()
-			if err != nil {
-				return err
-			}
-
-			errs = append(errs, errors.New(errStr))
-		}
-	}
-
-	topError := new(wError)
-	currentError := topError
-	for _, err := range errs {
-		currentError.inner = err
-
-		if we, ok := err.(*wError); ok {
-			currentError = we
-		}
-	}
-
-	if we, ok := topError.inner.(*wError); ok {
-		e.context = we.context
-		e.caller = we.caller
-		e.inner = we.inner
-	}
 	return nil
 }
