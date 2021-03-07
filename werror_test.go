@@ -1,6 +1,7 @@
 package wrappederror
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -133,4 +134,20 @@ func TestErrorMarshalText(t *testing.T) {
 	if string(d) != we.Error() {
 		t.Error("Expected unmarshaled error.")
 	}
+}
+
+func TestErrorMarshalJSON(t *testing.T) {
+	SetMarshalMinimalJSON(true)
+
+	e1 := errors.New("error 1")
+	e2 := New(e1, "error 2")
+	e3 := New(e2, "error 3")
+	e4 := New(e3, "error 4")
+
+	b, err := json.Marshal(e4)
+	if err != nil {
+		t.Fatalf("Error marshaling json: %s\n", err)
+	}
+
+	fmt.Println(string(b))
 }

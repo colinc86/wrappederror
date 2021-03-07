@@ -11,13 +11,14 @@ It contains handy methods to examine the error chain, the stack and your source,
 - 🎁 [Wrap/unwrap errors](#wrapping-errors)
 - 📎 [Give errors context](#wrapping-errors)
 - 🎛 [Configurable](#configuring-errors)
+- 🧱 [Marshal/unmarshal](#marshaling-and-unmarshaling-errors)
 - 🔍 [Examine errors](#examining-errors)
   - 🗂 [Metadata](#metadata)
   - 📏 [Depth](#depth)
   - 👣 [Walk](#walk)
   - ⛓ [Trace](#trace)
   - 🖇 [Context](#error-and-context)
-- 📞 [Caller](#caller)
+- 📇 [Caller](#caller)
   - 📄 [File, function and line](#file-function-and-line)
   - 🧬 [Stack trace](#stack-trace)
   - 🧩 [Source fragment](#source-fragment)
@@ -300,6 +301,8 @@ e := New(nil, err)
 e.Break()
 ```
 
+### Marshaling and Unmarshaling Errors
+
 ### Configuring Errors
 
 Use the `Configure` function
@@ -312,7 +315,8 @@ Use the `Configure` function
 // - Ignore breakpoints
 // - Start indexing errors at 1
 // - Track similar errors
-we.Configure(true, false, 4, true, 1, true)
+// - Marshal full errors in to JSON
+we.Configure(true, false, 4, true, 1, true, false)
 ```
 
 or any of the corresponding setters to the getters listed in the table below.
@@ -325,6 +329,7 @@ or any of the corresponding setters to the getters listed in the table below.
 | `IgnoreBreakpoints() bool`   | `true`        | Determines whether or not breakpoints should be ignored when calling `Process().Break()`. |
 | `NextErrorIndex() int`       | `1`           | The next index that will be used when creating an error in the error's metadata. |
 | `TrackSimilarErrors() bool`  | `true`        | Whether or not errors that are wrapped should be tracked for similarity. |
+| `MarshalMinimalJSON() bool`  | `true`        | Determines how errors are marshaled in to JSON. When this value is true, a smaller JSON object is created without size-inflating data like stack traces and source fragments. |
 
 ## Contributing
 

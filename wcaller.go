@@ -2,6 +2,7 @@ package wrappederror
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -116,6 +117,16 @@ func (c wCaller) String() string {
 		c.fileName,
 		c.lineNumber,
 	)
+}
+
+// JSON Marshaler and Unmarshaler interface methods
+
+func (c wCaller) MarshalJSON() ([]byte, error) {
+	return json.Marshal(newJSONWCaller(&c))
+}
+
+func (c *wCaller) UnmarshalJSON(b []byte) error {
+	return nil
 }
 
 // Caller interface methods

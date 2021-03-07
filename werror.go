@@ -2,6 +2,7 @@
 package wrappederror
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -182,14 +183,10 @@ func (e wError) Is(target error) bool {
 
 // TextMarshaler and TextUnmarshaler interface methods
 
-// MarshalText marshals the wrapped error in to text, but not JSON or binary.
 func (e wError) MarshalText() ([]byte, error) {
 	return []byte(e.Error()), nil
 }
 
-// UnmarshalText unmarshals in to a wrapped error. Since the wrapped error
-// doesn't know what you want from it, all errors that the wrapped errors
-// wrapped are now wrapped errors themselves. Say that 5 times fast.
 func (e *wError) UnmarshalText(b []byte) error {
 	c := strings.Split(strings.TrimSpace(string(b)), ":")
 	l := len(c)
@@ -208,5 +205,25 @@ func (e *wError) UnmarshalText(b []byte) error {
 		e.inner = we
 	}
 
+	return nil
+}
+
+// BinaryMarshaler and BinaryUnmarshaler interface methods
+
+func (e wError) MarshalBinary() ([]byte, error) {
+	return nil, nil
+}
+
+func (e *wError) UnmarshalBinary(b []byte) error {
+	return nil
+}
+
+// JSON Marshaler and Unmarshaler interface methods
+
+func (e wError) MarshalJSON() ([]byte, error) {
+	return json.Marshal(newJSONWError(e))
+}
+
+func (e *wError) UnmarshalJSON(b []byte) error {
 	return nil
 }

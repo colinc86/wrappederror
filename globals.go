@@ -11,6 +11,7 @@ func Configure(
 	ignoreBreakpoints bool,
 	nextErrorIndex int,
 	trackSimilarErrors bool,
+	marshalMinimalJSON bool,
 ) {
 	SetCaptureCaller(captureCaller)
 	SetCaptureProcess(captureProcess)
@@ -18,6 +19,7 @@ func Configure(
 	SetIgnoreBreakpoints(ignoreBreakpoints)
 	SetNextErrorIndex(nextErrorIndex)
 	SetTrackSimilarErrors(trackSimilarErrors)
+	SetMarshalMinimalJSON(marshalMinimalJSON)
 }
 
 // Error interface values
@@ -29,6 +31,9 @@ var (
 
 	// Whether or not errors should capture their process information.
 	captureProcess = newConfigValue(true)
+
+	// Whether or not errors should be marshaled minimally.
+	marshalMinimalJSON = newConfigValue(true)
 )
 
 // SetCaptureCaller sets a flag to determine if new errors capture their caller
@@ -53,6 +58,19 @@ func SetCaptureProcess(capture bool) {
 // capture their process information.
 func CaptureProcess() bool {
 	return captureProcess.get().(bool)
+}
+
+// SetMarshalMinimalJSON determines how errors are marshaled in to JSON. When
+// this value is true, a smaller JSON object is created without size-inflating
+// data like stack traces and source fragments.
+func SetMarshalMinimalJSON(minimal bool) {
+	marshalMinimalJSON.set(minimal)
+}
+
+// MarshalMinimalJSON gets a boolean that indicates whether or not errors will
+// be marshaled in to a minimal version of JSON.
+func MarshalMinimalJSON() bool {
+	return marshalMinimalJSON.get().(bool)
 }
 
 // Caller interface values
