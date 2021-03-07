@@ -59,7 +59,7 @@ func newJSONError(err error) *jsonError {
 }
 
 func newJSONWError(e wError) interface{} {
-	if MarshalMinimalJSON() {
+	if packageState.configuration.MarshalMinimalJSON() {
 		return newJSONWErrorMinimal(e)
 	}
 	return newJSONWErrorFull(e)

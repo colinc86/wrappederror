@@ -114,7 +114,7 @@ func TestUnwrap(t *testing.T) {
 }
 
 func TestErrorMarshalJSON(t *testing.T) {
-	SetMarshalMinimalJSON(true)
+	packageState.configuration.SetMarshalMinimalJSON(true)
 
 	e1 := errors.New("error 1")
 	e2 := New(e1, "error 2")

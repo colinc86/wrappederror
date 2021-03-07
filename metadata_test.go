@@ -8,7 +8,7 @@ import (
 )
 
 func TestCurrentMetadata(t *testing.T) {
-	SetNextErrorIndex(1)
+	packageState.configuration.SetNextErrorIndex(1)
 	time.Sleep(time.Second * 10)
 	m1 := currentMetadata(nil)
 	m2 := currentMetadata(nil)
