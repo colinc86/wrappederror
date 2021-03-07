@@ -13,15 +13,16 @@ type jsonError struct {
 
 // The minimal JSON error type.
 type jsonWErrorMinimal struct {
-	Context  interface{} `json:"context"`
-	Depth    int         `json:"depth"`
-	Time     time.Time   `json:"time"`
-	Index    int         `json:"index"`
-	Similar  int         `json:"simlar,omitempty"`
-	File     string      `json:"file"`
-	Function string      `json:"function"`
-	Line     int         `json:"line"`
-	Inner    interface{} `json:"wraps,omitempty"`
+	Context  interface{}   `json:"context"`
+	Depth    int           `json:"depth"`
+	Time     time.Time     `json:"time"`
+	Duration time.Duration `json:"duration"`
+	Index    int           `json:"index"`
+	Similar  int           `json:"simlar,omitempty"`
+	File     string        `json:"file"`
+	Function string        `json:"function"`
+	Line     int           `json:"line"`
+	Inner    interface{}   `json:"wraps,omitempty"`
 }
 
 // The full JSON error type.
@@ -69,6 +70,7 @@ func newJSONWErrorMinimal(e wError) *jsonWErrorMinimal {
 		Context:  e.context,
 		Depth:    int(e.Depth()),
 		Time:     e.metadata.ErrorTime,
+		Duration: e.metadata.ErrorDuration,
 		Index:    e.metadata.ErrorIndex,
 		Similar:  e.metadata.SimilarErrors,
 		File:     e.caller.FileName,

@@ -2,7 +2,7 @@
 
 [![Go Tests](https://github.com/colinc86/wrappederror/actions/workflows/go-test.yml/badge.svg?branch=main)](https://github.com/colinc86/wrappederror/actions/workflows/go-test.yml) [![Go Reference](https://pkg.go.dev/badge/github.com/colinc86/wrappederror.svg)](https://pkg.go.dev/github.com/colinc86/wrappederror)
 
-Package wrappederror implements an `error` type for Go that utilizes the `errors` package's `Unwrap`, `Is` and `As` functions to chain as many errors together as you'd like.
+Package wrappederror implements an `error` type for Go for wrapping errors.
 
 It contains handy methods to examine the error chain, the stack and your source, and plays nicely with other `error` types.
 
@@ -342,6 +342,7 @@ The package marshals its error type in to one of two versions of JSON (defined b
   },
   "metadata": {
     "time": "the time",
+    "duration": 0.0,
     "index": 0,
     "similar": 0
   }
@@ -355,6 +356,7 @@ The package marshals its error type in to one of two versions of JSON (defined b
   "depth": 0,
   "wraps": { /* another error or null */ },
   "time": "the time",
+  "duration": 0.0,
   "index": 0,
   "similar": 0,
   "file": "/path/to/file",
