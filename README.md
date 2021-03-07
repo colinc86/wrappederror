@@ -12,6 +12,7 @@ It contains handy methods to examine the error chain, the stack and your source,
 - 📎 [Give errors context](#wrapping-errors)
 - 🎛 [Configurable](#configuring-errors)
 - 🧱 [Marshalable](#marshaling-errors)
+- 🧵 [Thread safe](#thread-safety)
 - 🔍 [Examine errors](#examining-errors)
   - 🗂 [Metadata](#metadata)
   - 📏 [Depth](#depth)
@@ -82,7 +83,8 @@ Errors come attached with metadata. `Metadata` types contain information about t
 
 - the error's index during the process's execution,
 - the number of similar non-nil errors that have been wrapped,
-- and the time that the error was created.
+- the time that the error was created,
+- and the duration since the process was launched and when the error was created.
 
 ```go
 // Print the error's metadata
@@ -90,7 +92,7 @@ fmt.Println(e.Metadata())
 ```
 
 ```
-(#1) (≈0) 2021-03-06 23:26:58.760018 -0600 CST m=+0.000599020
+(#1) (≈0) (+10.000280) 2021-03-07 13:29:07.179446 -0600 CST m=+10.000589560
 ```
 
 The package keeps track of the number of similar errors by keeping a hash map of the errors that have been wrapped. It creates a 128-bit hash of an error's `Error() string` method and keeps a count of the number of identical hashes. You can turn this behavior on/off by using the `SetTrackSimilarErrors(track bool)` function.
@@ -370,6 +372,10 @@ All other errors are marshaled in to a generic JSON object:
   "wraps": { /* another error or null */ }
 }
 ```
+
+### Thread Safety
+
+The package was built with thread-safety in mind. You can modify configuration settings and create errors from any goroutine without worrying about locks.
 
 ### Configuring Errors
 

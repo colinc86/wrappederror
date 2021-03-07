@@ -7,9 +7,10 @@ import (
 
 // A type containing error metadata.
 type wMetadata struct {
-	ErrorTime     time.Time `json:"time"`
-	ErrorIndex    int       `json:"index"`
-	SimilarErrors int       `json:"similar"`
+	ErrorTime     time.Time     `json:"time"`
+	ErrorDuration time.Duration `json:"duration"`
+	ErrorIndex    int           `json:"index"`
+	SimilarErrors int           `json:"similar"`
 }
 
 // Initializers
@@ -17,11 +18,13 @@ type wMetadata struct {
 // newWMetadata creates new metadata with the specified components.
 func newWMetadata(
 	time time.Time,
+	duration time.Duration,
 	index int,
 	similarErrors int,
 ) *wMetadata {
 	return &wMetadata{
 		ErrorTime:     time,
+		ErrorDuration: duration,
 		ErrorIndex:    index,
 		SimilarErrors: similarErrors,
 	}
@@ -34,6 +37,7 @@ func newWMetadata(
 func currentMetadata(err error) *wMetadata {
 	return &wMetadata{
 		ErrorTime:     time.Now(),
+		ErrorDuration: getDurationSinceLaunch(),
 		ErrorIndex:    getAndIncrementNextErrorIndex(),
 		SimilarErrors: getSimilarErrorCount(err),
 	}
@@ -43,9 +47,10 @@ func currentMetadata(err error) *wMetadata {
 
 func (m wMetadata) String() string {
 	return fmt.Sprintf(
-		"(#%d) (≈%d) %s",
+		"(#%d) (≈%d) (+%f) %s",
 		m.ErrorIndex,
 		m.SimilarErrors,
+		m.ErrorDuration.Seconds(),
 		m.ErrorTime,
 	)
 }
@@ -54,6 +59,10 @@ func (m wMetadata) String() string {
 
 func (m wMetadata) Time() time.Time {
 	return m.ErrorTime
+}
+
+func (m wMetadata) Duration() time.Duration {
+	return m.ErrorDuration
 }
 
 func (m wMetadata) Index() int {

@@ -12,6 +12,14 @@ type Metadata interface {
 	// The time that the error was created.
 	Time() time.Time
 
+	// The duration since the process was launched and when the error was created.
+	//
+	// This value mimics the monotonic clock reading appended to the end of
+	// strings returned by the `time.String() string` method. There will be a
+	// slight difference in duration depending on the executable's package loading
+	// order.
+	Duration() time.Duration
+
 	// The index of the error.
 	//
 	// Error indexes begin at 1 and incriment for each error created during the

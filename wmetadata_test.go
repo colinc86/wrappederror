@@ -2,11 +2,14 @@ package wrappederror
 
 import (
 	"errors"
+	"fmt"
 	"testing"
+	"time"
 )
 
 func TestCurrentMetadata(t *testing.T) {
 	SetNextErrorIndex(1)
+	time.Sleep(time.Second * 10)
 	m1 := currentMetadata(nil)
 	m2 := currentMetadata(nil)
 
@@ -17,6 +20,8 @@ func TestCurrentMetadata(t *testing.T) {
 	if m1.ErrorIndex+1 != m2.ErrorIndex {
 		t.Errorf("Expected m2.index (%d) to be one greater than m1.index (%d).\n", m2.ErrorIndex, m1.ErrorIndex)
 	}
+
+	fmt.Println(m2)
 }
 
 func TestSimilarMetadata(t *testing.T) {

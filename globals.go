@@ -1,5 +1,9 @@
 package wrappederror
 
+import "time"
+
+// Exported functions
+
 // Configure configures the behavior of various aspects of the wrappederror
 // package.
 //
@@ -173,4 +177,15 @@ func getSimilarErrorCount(err error) int {
 	s := errorHashMap.similarErrors(err)
 	errorHashMap.addError(err)
 	return s
+}
+
+// processLaunchTime is the time that the process was launched.
+var processLaunchTime = newConfigValue(time.Now())
+
+// getDurationSinceLaunch gets the current duration since the process was
+// launched.
+func getDurationSinceLaunch() time.Duration {
+	n := time.Now()
+	lt := processLaunchTime.get().(time.Time)
+	return n.Sub(lt)
 }
