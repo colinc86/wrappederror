@@ -302,7 +302,20 @@ e.Break()
 
 ### Configuring Errors
 
-Some of the behaviors of new errors can be configured using the follwing table of functions. Only the getters are listed, but setters exist for each.
+Use the `Configure` function
+
+```go
+// Configure the package to
+// - Capture call information
+// - Ignore process information
+// - Get 9 lines of source
+// - Ignore breakpoints
+// - Start indexing errors at 1
+// - Track similar errors
+we.Configure(true, false, 4, true, 1, true)
+```
+
+or any of the corresponding setters to the getters listed in the table below.
 
 | Function                     | Initial Value | Description |
 |:-----------------------------|:--------------|:------------|

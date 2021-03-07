@@ -1,5 +1,25 @@
 package wrappederror
 
+// Configure configures the behavior of various aspects of the wrappederror
+// package.
+//
+// Configure individual properties using the Set- functions.
+func Configure(
+	captureCaller bool,
+	captureProcess bool,
+	sourceFragmentRadius int,
+	ignoreBreakpoints bool,
+	nextErrorIndex int,
+	trackSimilarErrors bool,
+) {
+	SetCaptureCaller(captureCaller)
+	SetCaptureProcess(captureProcess)
+	SetSourceFragmentRadius(sourceFragmentRadius)
+	SetIgnoreBreakpoints(ignoreBreakpoints)
+	SetNextErrorIndex(nextErrorIndex)
+	SetTrackSimilarErrors(trackSimilarErrors)
+}
+
 // Error interface values
 
 // Variables used to configure the behavior of wError instances.
