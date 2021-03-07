@@ -104,7 +104,7 @@ func getSource(filePath string, lineNumber int, radius int) ([]byte, error) {
 	return b, nil
 }
 
-// String interface methods
+// Stringer interface methods
 
 func (c wCaller) String() string {
 	return fmt.Sprintf(

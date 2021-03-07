@@ -52,7 +52,7 @@ func currentProcess() *wProcess {
 	)
 }
 
-// String interface methods
+// Stringer interface methods
 
 func (p wProcess) String() string {
 	return fmt.Sprintf(

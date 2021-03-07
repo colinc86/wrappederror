@@ -2,7 +2,6 @@ package wrappederror
 
 import (
 	"encoding"
-	"time"
 )
 
 // Error types wrap an error.
@@ -15,16 +14,26 @@ type Error interface {
 	//
 	// Use this value to examine the error's call information such as file name,
 	// function name and line number.
+	//
+	// Call information is captured by default. To not capture this information,
+	// use the `SetCaptureCaller` function.
+	//
+	// If call information is not captured, then this method returns `nil`.
 	Caller() Caller
 
 	// Process returns the error's process.
 	//
 	// Use this value to examine the current process's information such as number
 	// of goroutines when the error was created.
+	//
+	// Process information is captured by default. To not capture this
+	// information, use the `SetCaptureProcess` function.
+	//
+	// If process information is not captured, then this method returns `nil`.
 	Process() Process
 
-	// Time returns the time that this error was created.
-	Time() time.Time
+	// Metadata contains information about the error.
+	Metadata() Metadata
 
 	// The error's context.
 	//

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 )
 
 // wError types wrap an error.
@@ -21,14 +20,14 @@ type wError struct {
 	// Information about the current process when the error was created.
 	process *wProcess
 
-	// The time that the error was created.
-	time time.Time
+	// Metadata pertaining to the error.
+	metadata *wMetadata
 }
 
 // Initializers
 
 // New creates and returns a new wrapped error.
-func New(err error, context interface{}) Error {
+func New(err error, ctx interface{}) Error {
 	var caller *wCaller
 	if CaptureCaller() {
 		caller = currentCaller(2)
@@ -40,11 +39,11 @@ func New(err error, context interface{}) Error {
 	}
 
 	return &wError{
-		context: context,
-		inner:   err,
-		caller:  caller,
-		process: process,
-		time:    time.Now(),
+		context:  ctx,
+		inner:    err,
+		caller:   caller,
+		process:  process,
+		metadata: currentMetadata(err),
 	}
 }
 
@@ -62,8 +61,8 @@ func (e wError) Process() Process {
 	return e.process
 }
 
-func (e wError) Time() time.Time {
-	return e.time
+func (e wError) Metadata() Metadata {
+	return e.metadata
 }
 
 func (e wError) Walk(step func(err error) bool) {
