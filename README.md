@@ -76,11 +76,11 @@ if data, err := json.Marshal(myObj); err != nil {
 
 ### Examining Errors
 
-There are many ways to probe an `Error` for information...
+There are many ways to probe an error for information...
 
 #### Depth
 
-Wrapped errors have _depth_. That is, the number of errors after itself in the error chain.
+Errors have _depth_. That is, the number of errors after itself in the error chain.
 
 For eample, the following prints the depth of each error in the chain.
 
@@ -127,7 +127,7 @@ e2.Walk(func (err error) bool {
 
 #### Trace
 
-Get an error trace by calling the `Trace` method. This method returns a prettified string representation of an error with caller information.
+Get an error trace by calling the `Trace() string` method. This method returns a prettified string representation of an error with caller information.
 
 ```go
 // Print an error trace
@@ -142,7 +142,7 @@ fmt.Println(e2.Trace())
 
 #### Error and Context
 
-The error's `Error` method returns an inline string representation of the entire error chain.
+The error's `Error() string` method returns an inline string representation of the entire error chain.
 
 ```go
 // Print the entire error chain
@@ -153,7 +153,7 @@ fmt.Println(e2.Error())
 error C: error B: error A
 ```
 
-To only examine the receivers context, use the `Context() interface{}` method.
+To only examine the receiver's context, use the `Context() interface{}` method.
 
 ```go
 // Only print the error's context
@@ -166,7 +166,7 @@ error C
 
 #### Caller
 
-By default, errors contain call information accessible from the `Caller` method. See the [Configuring Errors](#configuring-errors) section for more information.
+By default, errors contain call information accessible from the `Caller() interface{}` method. See the [Configuring Errors](#configuring-errors) section for more information.
 
 ##### File, Function and Line
 
@@ -233,7 +233,7 @@ if we.SourceFragmentRadius() != 5 {
 
 #### Process
 
-Use the `Process()` method to get information about the current process. See the [Configuring Errors](#configuring-errors) section for more information.
+Use the `Process() Process` method to get information about the current process. See the [Configuring Errors](#configuring-errors) section for more information.
 
 ##### Goroutines, CPUs and CGO
 
@@ -250,7 +250,7 @@ goroutines: 2, cpus: 16, cgos: 0
 
 ##### Memory Statistics
 
-Memory statistics are also available with the `e.Process().Memory()` method.
+Memory statistics are also available with the `e.Process().Memory() *runtime.MemStats` method.
 
 ```go
 // Print the allocated memory at the time of the error
@@ -272,7 +272,7 @@ if e := doSomething(); e != nil {
 }
 ```
 
-By default, all calls to `Process.Break` are ignored. A call to `SetIgnoreBreakpoints(false)` must happen before `Process` types will attempt to break.
+By default, all calls to `Process().Break()` are ignored. A call to `SetIgnoreBreakpoints(false)` must happen before `Process` types will attempt to break.
 
 ```go
 // Ignore all breakpoints if we aren't debugging
