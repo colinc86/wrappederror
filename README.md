@@ -8,26 +8,26 @@ It contains handy methods to examine the error chain, the stack and your source,
 
 ## Features
 
-- 🎁 [Wrap/unwrap errors](#wrapping-errors)
-- 📎 [Give errors context](#wrapping-errors)
+- 🎁 [Wrappable](#wrapping-errors)
+- 📎 [Contextual](#wrapping-errors)
 - 🎛 [Configurable](#configuring-errors)
 - 🧱 [Marshalable](#marshaling-errors)
 - 🗒 [Formatable](#formatting-errors)
 - 🧵 [Thread safe](#thread-safety)
-- 🔍 [Examine errors](#examining-errors)
+- 🔍 [Examable](#examining-errors)
   - 🗂 [Metadata](#metadata)
   - 📏 [Depth](#depth)
   - 👣 [Walk](#walk)
   - ⛓ [Trace](#trace)
   - 🖇 [Context](#error-and-context)
-- 📇 [Caller](#caller)
-  - 📄 [File, function and line](#file-function-and-line)
-  - 🧬 [Stack trace](#stack-trace)
-  - 🧩 [Source fragment](#source-fragment)
-- 🔬 [Process](#process)
-  - 💻 [Num routines, CPUs and cgo calls](#goroutines-cpus-and-cgo)
-  - 📊 [Memory statistics](#memory-statistics)
-  - 📌 [Programmatic breakpoints](#debugging)
+  - 📇 [Caller](#caller)
+    - 📄 [File, function and line](#file-function-and-line)
+    - 🧬 [Stack trace](#stack-trace)
+    - 🧩 [Source fragment](#source-fragment)
+  - 🔬 [Process](#process)
+    - 💻 [Num routines, CPUs and cgo calls](#goroutines-cpus-and-cgo)
+    - 📊 [Memory statistics](#memory-statistics)
+    - 📌 [Programmatic breakpoints](#debugging)
 
 ## Installing
 
