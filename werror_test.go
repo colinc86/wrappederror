@@ -3,7 +3,6 @@ package wrappederror
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 )
@@ -66,7 +65,6 @@ func TestDepth_2(t *testing.T) {
 	e0 := errors.New("error 0")
 	e1 := New(e0, "error 1")
 	e2 := New(e1, "error 2")
-	fmt.Println(e1.Caller().Source())
 
 	if e2.Depth() != 2 {
 		t.Errorf("Expected depth 2 but received %d.\n", e2.Depth())
@@ -115,27 +113,6 @@ func TestUnwrap(t *testing.T) {
 	}
 }
 
-func TestErrorMarshalText(t *testing.T) {
-	e1 := errors.New("error 1")
-	e2 := New(e1, "error 2")
-	e3 := New(e2, "error 3")
-	e4 := New(e3, "error 4")
-
-	d, err := e4.MarshalText()
-	if err != nil {
-		t.Errorf("Error marshaling text: %s\n", err)
-	}
-
-	we := &wError{}
-	if err = we.UnmarshalText(d); err != nil {
-		t.Errorf("Error unmarshaling text: %s\n", err)
-	}
-
-	if string(d) != we.Error() {
-		t.Error("Expected unmarshaled error.")
-	}
-}
-
 func TestErrorMarshalJSON(t *testing.T) {
 	SetMarshalMinimalJSON(true)
 
@@ -144,10 +121,8 @@ func TestErrorMarshalJSON(t *testing.T) {
 	e3 := New(e2, "error 3")
 	e4 := New(e3, "error 4")
 
-	b, err := json.Marshal(e4)
+	_, err := json.Marshal(e4)
 	if err != nil {
 		t.Fatalf("Error marshaling json: %s\n", err)
 	}
-
-	fmt.Println(string(b))
 }

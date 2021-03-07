@@ -11,7 +11,7 @@ It contains handy methods to examine the error chain, the stack and your source,
 - 🎁 [Wrap/unwrap errors](#wrapping-errors)
 - 📎 [Give errors context](#wrapping-errors)
 - 🎛 [Configurable](#configuring-errors)
-- 🧱 [Marshal/unmarshal](#marshaling-and-unmarshaling-errors)
+- 🧱 [Marshalable](#marshaling-errors)
 - 🔍 [Examine errors](#examining-errors)
   - 🗂 [Metadata](#metadata)
   - 📏 [Depth](#depth)
@@ -301,7 +301,75 @@ e := New(nil, err)
 e.Break()
 ```
 
-### Marshaling and Unmarshaling Errors
+### Marshaling Errors
+
+The package supports marshaling errors in to JSON, but because the error type defined in this package wraps errors of type `error`, a bijective `UnmarshalJSON` method isn't possible. Intead of attempting to guess at wrapped types, the package just doesn't try.
+
+Error fields with `Caller`, `Process` and `Metadata` types _do_ implement both JSON marshaling and unmarshaling.
+
+The error chain can get long, and if errors are collecting caller and process information, then JSON objects for a "single" top-level error may be disproportionately large compared to the rest of the JSON object they're embedded in. The package provides a function for determining how errors are marshaled in to JSON data.
+
+```go
+// Marshal full JSON objects
+SetMarshalMinimalJSON(false)
+
+// Marshal a slimmed-down version of errors
+SetMarshalMinimalJSON(true)
+```
+
+The package marshals its error type in to one of two versions of JSON (defined by the `MarshalMinimalJSON` setting):
+
+```jsonc
+// The "full" version of an error
+{
+  "context": "the error's context",
+  "depth": 0,
+  "wraps": { /* another error or null */ },
+  "caller": {
+    "file": "/path/to/file",
+    "function": "function",
+    "line": 0,
+    "stackTrace": "trace",
+    "sourceFragment:" "source"
+  },
+  "process": {
+    "goroutines": 1,
+    "cpus": 8,
+    "cgos": 0,
+    "memory": { /* runtime.MemStats */ },
+  },
+  "metadata": {
+    "time": "the time",
+    "index": 0,
+    "similar": 0
+  }
+}
+```
+
+```jsonc
+// The "minimal" version of an error
+{
+  "context": "the error's context",
+  "depth": 0,
+  "wraps": { /* another error or null */ },
+  "time": "the time",
+  "index": 0,
+  "similar": 0,
+  "file": "/path/to/file",
+  "function": "function",
+  "line": 0
+}
+```
+
+All other errors are marshaled in to a generic JSON object:
+
+```jsonc
+// The "generic" version of an error
+{
+  "error": "the output of Error() string",
+  "wraps": { /* another error or null */ }
+}
+```
 
 ### Configuring Errors
 

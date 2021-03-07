@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 )
 
 // wError types wrap an error.
@@ -181,49 +180,14 @@ func (e wError) Is(target error) bool {
 	return is
 }
 
-// TextMarshaler and TextUnmarshaler interface methods
+// TextMarshaler interface methods
 
 func (e wError) MarshalText() ([]byte, error) {
 	return []byte(e.Error()), nil
 }
 
-func (e *wError) UnmarshalText(b []byte) error {
-	c := strings.Split(strings.TrimSpace(string(b)), ":")
-	l := len(c)
-
-	if l == 0 {
-		e.context = ""
-		e.inner = nil
-	} else if l == 1 {
-		e.context = c[0]
-		e.inner = nil
-	} else if l > 1 {
-		e.context = c[0]
-
-		we := new(wError)
-		_ = we.UnmarshalText([]byte(strings.Join(c[1:], ":")))
-		e.inner = we
-	}
-
-	return nil
-}
-
-// BinaryMarshaler and BinaryUnmarshaler interface methods
-
-func (e wError) MarshalBinary() ([]byte, error) {
-	return nil, nil
-}
-
-func (e *wError) UnmarshalBinary(b []byte) error {
-	return nil
-}
-
-// JSON Marshaler and Unmarshaler interface methods
+// JSON Marshaler interface methods
 
 func (e wError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(newJSONWError(e))
-}
-
-func (e *wError) UnmarshalJSON(b []byte) error {
-	return nil
 }

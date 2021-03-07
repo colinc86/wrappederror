@@ -7,9 +7,9 @@ import (
 
 // A type containing error metadata.
 type wMetadata struct {
-	time          time.Time
-	index         int
-	similarErrors int
+	ErrorTime     time.Time `json:"time"`
+	ErrorIndex    int       `json:"index"`
+	SimilarErrors int       `json:"similar"`
 }
 
 // Initializers
@@ -21,9 +21,9 @@ func newWMetadata(
 	similarErrors int,
 ) *wMetadata {
 	return &wMetadata{
-		time:          time,
-		index:         index,
-		similarErrors: similarErrors,
+		ErrorTime:     time,
+		ErrorIndex:    index,
+		SimilarErrors: similarErrors,
 	}
 }
 
@@ -33,9 +33,9 @@ func newWMetadata(
 // The function requires the error's inner error to find similar errors.
 func currentMetadata(err error) *wMetadata {
 	return &wMetadata{
-		time:          time.Now(),
-		index:         getAndIncrementNextErrorIndex(),
-		similarErrors: getSimilarErrorCount(err),
+		ErrorTime:     time.Now(),
+		ErrorIndex:    getAndIncrementNextErrorIndex(),
+		SimilarErrors: getSimilarErrorCount(err),
 	}
 }
 
@@ -44,22 +44,22 @@ func currentMetadata(err error) *wMetadata {
 func (m wMetadata) String() string {
 	return fmt.Sprintf(
 		"(#%d) (≈%d) %s",
-		m.index,
-		m.similarErrors,
-		m.time,
+		m.ErrorIndex,
+		m.SimilarErrors,
+		m.ErrorTime,
 	)
 }
 
 // Process interface methods
 
 func (m wMetadata) Time() time.Time {
-	return m.time
+	return m.ErrorTime
 }
 
 func (m wMetadata) Index() int {
-	return m.index
+	return m.ErrorIndex
 }
 
 func (m wMetadata) Similar() int {
-	return m.similarErrors
+	return m.SimilarErrors
 }

@@ -7,16 +7,16 @@ import (
 func TestCurrentCaller(t *testing.T) {
 	c := currentCaller(1)
 
-	if c.functionName != "github.com/colinc86/wrappederror.TestCurrentCaller" {
-		t.Errorf("Incorrect function name: %s\n", c.functionName)
+	if c.FunctionName != "github.com/colinc86/wrappederror.TestCurrentCaller" {
+		t.Errorf("Incorrect function name: %s\n", c.FunctionName)
 	}
 
-	if c.fileName != "wcaller_test.go" {
-		t.Errorf("Incorrect file name: %s\n", c.fileName)
+	if c.FileName != "wcaller_test.go" {
+		t.Errorf("Incorrect file name: %s\n", c.FileName)
 	}
 
-	if c.lineNumber != 8 {
-		t.Errorf("Incorrect line number: %d\n", c.lineNumber)
+	if c.LineNumber != 8 {
+		t.Errorf("Incorrect line number: %d\n", c.LineNumber)
 	}
 }
 
@@ -24,15 +24,15 @@ func TestCurrentCaller_Skip(t *testing.T) {
 	c1 := currentCaller(1)
 	c2 := currentCaller(2)
 
-	if c1.fileName == c2.fileName {
+	if c1.FileName == c2.FileName {
 		t.Errorf("Incorrect file names.")
 	}
 
-	if c1.functionName == c2.functionName {
+	if c1.FunctionName == c2.FunctionName {
 		t.Errorf("Incorrect function names.")
 	}
 
-	if c1.lineNumber == c2.lineNumber {
+	if c1.LineNumber == c2.LineNumber {
 		t.Errorf("Incorrect line numbers.")
 	}
 }

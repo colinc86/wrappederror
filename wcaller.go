@@ -2,7 +2,6 @@ package wrappederror
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -19,11 +18,11 @@ const (
 
 // A type containing call information.
 type wCaller struct {
-	fileName     string
-	functionName string
-	lineNumber   int
-	stackTrace   []byte
-	source       []byte
+	FileName       string `json:"file"`
+	FunctionName   string `json:"function"`
+	LineNumber     int    `json:"line"`
+	StackTrace     string `json:"stackTrace"`
+	SourceFragment string `json:"sourceFragment"`
 }
 
 // Initializers
@@ -33,15 +32,15 @@ func newWCaller(
 	fileName string,
 	functionName string,
 	lineNumber int,
-	stackTrace []byte,
-	source []byte,
+	stackTrace string,
+	source string,
 ) *wCaller {
 	return &wCaller{
-		fileName:     fileName,
-		functionName: functionName,
-		lineNumber:   lineNumber,
-		stackTrace:   stackTrace,
-		source:       source,
+		FileName:       fileName,
+		FunctionName:   functionName,
+		LineNumber:     lineNumber,
+		StackTrace:     stackTrace,
+		SourceFragment: source,
 	}
 }
 
@@ -56,9 +55,15 @@ func currentCaller(skip int) *wCaller {
 
 		_, fin := path.Split(fp)
 		if f := runtime.FuncForPC(pc); f != nil {
-			return newWCaller(fin, f.Name(), ln, st, so)
+			return newWCaller(fin, f.Name(), ln, string(st), string(so))
 		}
-		return newWCaller(fin, callerFunctionNameUnknown, ln, st, so)
+		return newWCaller(
+			fin,
+			callerFunctionNameUnknown,
+			ln,
+			string(st),
+			string(so),
+		)
 	}
 
 	// *Wah, wah, wah* sound effect.
@@ -66,8 +71,8 @@ func currentCaller(skip int) *wCaller {
 		callerFileNameUnknown,
 		callerFunctionNameUnknown,
 		callerLineNumberUnknown,
-		st,
-		nil,
+		string(st),
+		"",
 	)
 }
 
@@ -113,40 +118,30 @@ func getSource(filePath string, lineNumber int, radius int) ([]byte, error) {
 func (c wCaller) String() string {
 	return fmt.Sprintf(
 		"%s (%s:%d)",
-		c.functionName,
-		c.fileName,
-		c.lineNumber,
+		c.FunctionName,
+		c.FileName,
+		c.LineNumber,
 	)
-}
-
-// JSON Marshaler and Unmarshaler interface methods
-
-func (c wCaller) MarshalJSON() ([]byte, error) {
-	return json.Marshal(newJSONWCaller(&c))
-}
-
-func (c *wCaller) UnmarshalJSON(b []byte) error {
-	return nil
 }
 
 // Caller interface methods
 
 func (c wCaller) File() string {
-	return c.fileName
+	return c.FileName
 }
 
 func (c wCaller) Function() string {
-	return c.functionName
+	return c.FunctionName
 }
 
 func (c wCaller) Line() int {
-	return c.lineNumber
+	return c.LineNumber
 }
 
 func (c wCaller) Stack() string {
-	return string(c.stackTrace)
+	return string(c.StackTrace)
 }
 
 func (c wCaller) Source() string {
-	return string(c.source)
+	return string(c.SourceFragment)
 }

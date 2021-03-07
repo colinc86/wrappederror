@@ -10,12 +10,12 @@ func TestCurrentMetadata(t *testing.T) {
 	m1 := currentMetadata(nil)
 	m2 := currentMetadata(nil)
 
-	if m1.index != 1 {
-		t.Errorf("Expected starting index 1 but received: %d\n", m1.index)
+	if m1.ErrorIndex != 1 {
+		t.Errorf("Expected starting index 1 but received: %d\n", m1.ErrorIndex)
 	}
 
-	if m1.index+1 != m2.index {
-		t.Errorf("Expected m2.index (%d) to be one greater than m1.index (%d).\n", m2.index, m1.index)
+	if m1.ErrorIndex+1 != m2.ErrorIndex {
+		t.Errorf("Expected m2.index (%d) to be one greater than m1.index (%d).\n", m2.ErrorIndex, m1.ErrorIndex)
 	}
 }
 
@@ -34,15 +34,15 @@ func TestSimilarMetadata(t *testing.T) {
 	_ = currentMetadata(nil)
 	m3 := currentMetadata(nil)
 
-	if m1.similarErrors != 2 {
-		t.Errorf("Expected 2 similar errors but received %d.\n", m1.similarErrors)
+	if m1.SimilarErrors != 2 {
+		t.Errorf("Expected 2 similar errors but received %d.\n", m1.SimilarErrors)
 	}
 
-	if m2.similarErrors != 1 {
-		t.Errorf("Expected 1 similar error but received %d.\n", m2.similarErrors)
+	if m2.SimilarErrors != 1 {
+		t.Errorf("Expected 1 similar error but received %d.\n", m2.SimilarErrors)
 	}
 
-	if m3.similarErrors != 0 {
-		t.Errorf("Expected no similar errors but received %d.\n", m3.similarErrors)
+	if m3.SimilarErrors != 0 {
+		t.Errorf("Expected no similar errors but received %d.\n", m3.SimilarErrors)
 	}
 }

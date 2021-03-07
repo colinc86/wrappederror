@@ -1,15 +1,12 @@
 package wrappederror
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
 // Caller types contain call information.
 type Caller interface {
 	fmt.Stringer
-	json.Marshaler
-	json.Unmarshaler
 
 	// The file the caller was created in.
 	File() string

@@ -1,19 +1,13 @@
 package wrappederror
 
 import (
-	"encoding"
 	"encoding/json"
 )
 
 // Error types wrap an error.
 type Error interface {
 	error
-	encoding.TextMarshaler
-	encoding.TextUnmarshaler
-	encoding.BinaryMarshaler
-	encoding.BinaryUnmarshaler
 	json.Marshaler
-	json.Unmarshaler
 
 	// Caller returns the error's caller.
 	//

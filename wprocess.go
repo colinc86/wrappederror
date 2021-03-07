@@ -14,10 +14,10 @@ const (
 
 // A type containing process information.
 type wProcess struct {
-	numRoutines int
-	numCPUs     int
-	numCGO      int
-	memStats    *runtime.MemStats
+	NumRoutines int               `json:"goroutines"`
+	NumCPUs     int               `json:"cpus"`
+	NumCGO      int               `json:"cgos"`
+	MemStats    *runtime.MemStats `json:"memory,omitempty"`
 }
 
 // Initializers
@@ -30,10 +30,10 @@ func newWProcess(
 	memStats *runtime.MemStats,
 ) *wProcess {
 	return &wProcess{
-		numRoutines: numRoutines,
-		numCPUs:     numCPUs,
-		numCGO:      numCGO,
-		memStats:    memStats,
+		NumRoutines: numRoutines,
+		NumCPUs:     numCPUs,
+		NumCGO:      numCGO,
+		MemStats:    memStats,
 	}
 }
 
@@ -57,28 +57,28 @@ func currentProcess() *wProcess {
 func (p wProcess) String() string {
 	return fmt.Sprintf(
 		"goroutines: %d, cpus: %d, cgos: %d",
-		p.numRoutines,
-		p.numCPUs,
-		p.numCGO,
+		p.NumRoutines,
+		p.NumCPUs,
+		p.NumCGO,
 	)
 }
 
 // Process interface methods
 
 func (p wProcess) Routines() int {
-	return p.numRoutines
+	return p.NumRoutines
 }
 
 func (p wProcess) CPUs() int {
-	return p.numCPUs
+	return p.NumCPUs
 }
 
 func (p wProcess) CGO() int {
-	return p.numCGO
+	return p.NumCGO
 }
 
 func (p wProcess) Memory() *runtime.MemStats {
-	return p.memStats
+	return p.MemStats
 }
 
 func (p wProcess) Break() {
