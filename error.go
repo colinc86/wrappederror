@@ -43,6 +43,15 @@ type Error interface {
 	// the error being wrapped.
 	Context() interface{}
 
+	// A formatted string representation of the error using the error format, ef.
+	//
+	// You create an error format string by building a string with
+	// ErrorFormatToken types.
+	//
+	// Do not use formatting verbs supported by the fmt package in the error
+	// format string.
+	Format(ef string) string
+
 	// Walk calls the step function for each error in the error chain and
 	// continues until either the last error is reached, or until the step
 	// function returns false.
@@ -118,6 +127,10 @@ func New(err error, ctx interface{}) Error {
 
 func (e wError) Context() interface{} {
 	return e.context
+}
+
+func (e wError) Format(ef string) string {
+	return newFormatter().format(e, ef)
 }
 
 func (e wError) Caller() Caller {

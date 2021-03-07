@@ -12,6 +12,7 @@ It contains handy methods to examine the error chain, the stack and your source,
 - 📎 [Give errors context](#wrapping-errors)
 - 🎛 [Configurable](#configuring-errors)
 - 🧱 [Marshalable](#marshaling-errors)
+- 🗒 [Formatable](#formatting-errors)
 - 🧵 [Thread safe](#thread-safety)
 - 🔍 [Examine errors](#examining-errors)
   - 🗂 [Metadata](#metadata)
@@ -375,13 +376,70 @@ All other errors are marshaled in to a generic JSON object:
 }
 ```
 
-### Thread Safety
+### Formatting Errors
 
-The package was built with thread-safety in mind. You can modify configuration settings and create errors from any goroutine without worrying about locks.
+Errors have a `Format(ef string) string` method that returns a string with a custom format. It takes an error format string, `ef`, that is built using error format tokens.
+
+For example, you can achieve the same output as the caller's description by using the following format,
+
+```go
+ef := fmt.Sprintf(
+  "%s (%s:%s)",
+  ErrorFormatTokenFunction,
+  ErrorFormatTokenFile,
+  ErrorFormatTokenLine,
+)
+
+// The following statments have the same output
+fmt.Println(e.Format(ef))
+fmt.Println(e.Caller())
+```
+
+or you can create more complex/custom error formats.
+
+```go
+ef := fmt.Sprintf(
+  "Error #%s at %s (%s:%s): %s",
+  ErrorFormatTokenIndex,
+  ErrorFormatTokenTime,
+  ErrorFormatTokenFile,
+  ErrorFormatTokenLine,
+  ErrorFormatTokenChain,
+)
+
+fmt.Println(e.Format(ef))
+```
+
+```
+Error #2 at 2021-03-07 16:39:56.393366 -0600 CST m=+0.001129674 (formatter_test.go:10): error 2: error 1
+```
+
+The available tokens are as follows.
+
+| Token                      | Description |
+|:---------------------------|:------------|
+| `ErrorFormatTokenContext`  | The error's context. |
+| `ErrorFormatTokenInner`    | The output of the inner error's `Error() string` method. |
+| `ErrorFormatTokenChain`    | The error chain as returned by the error's `Error() string` method. |
+| `ErrorFormatTokenFile`     | The file name from the error's caller. |
+| `ErrorFormatTokenFunction` | The function from the error's caller. |
+| `ErrorFormatTokenLine`     | The line number from the error's caller. |
+| `ErrorFormatTokenStack`    | The stack trace from the error's caller. |
+| `ErrorFormatTokenSource`   | The source fragment from the error's caller. |
+| `ErrorFormatTokenTime`     | The time from the error's metadata. |
+| `ErrorFormatTokenDuration` | The duration (in seconds) from the error's metadata. |
+| `ErrorFormatTokenIndex`    | The error's index. |
+| `ErrorFormatTokenSimilar`  | The number of similar errors. |
+| `ErrorFormatTokenRoutines` | The number of goroutines when the error was created. |
+| `ErrorFormatTokenCPUs`     | The number of available CPUs when the error was created. |
+| `ErrorFormatTokenCGO`      | The number of cgo calls when the error was created. |
+| `ErrorFormatTokenMemory`   | The process memory statistics when the error was created. |
 
 ### Configuring Errors
 
-Use the `Configure` function
+The package's configuration is accessible through the `Config() Configuration` function.
+
+Use the `Set` method to configure everything at once,
 
 ```go
 // Configure the package to
@@ -392,7 +450,7 @@ Use the `Configure` function
 // - Start indexing errors at 1
 // - Track similar errors
 // - Marshal full errors in to JSON
-we.Configure(true, false, 4, true, 1, true, false)
+we.Config().Set(true, false, 4, true, 1, true, false)
 ```
 
 or any of the corresponding setters to the getters listed in the table below.
@@ -406,6 +464,21 @@ or any of the corresponding setters to the getters listed in the table below.
 | `NextErrorIndex() int`       | `1`           | The next index that will be used when creating an error in the error's metadata. |
 | `TrackSimilarErrors() bool`  | `true`        | Whether or not errors that are wrapped should be tracked for similarity. |
 | `MarshalMinimalJSON() bool`  | `true`        | Determines how errors are marshaled in to JSON. When this value is true, a smaller JSON object is created without size-inflating data like stack traces and source fragments. |
+
+#### Resetting State
+
+You can also reset the package's state and configuration to that of launch by using the `ResetState()` function.
+
+```go
+// Reset the package's state and configuration.
+we.ResetState()
+```
+
+Resetting state resets all configuration variables, the process launch time, and the hash map for keeping track for similar wrapped errors.
+
+### Thread Safety
+
+The package was built with thread-safety in mind. You can modify configuration settings and create errors from any goroutine without worrying about locks.
 
 ## Contributing
 
