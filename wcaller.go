@@ -84,10 +84,17 @@ func getSource(filePath string, lineNumber int, radius int) ([]byte, error) {
 	ui := lineNumber + radius
 	var b []byte
 
+	ali := 0
+	aui := 0
+
 	for s.Scan() {
 		l++
 
 		if l >= li && l <= ui {
+			if ali == 0 {
+				ali = l
+			}
+			aui = l
 			lnb := append(s.Bytes(), []byte("\n")...)
 			b = append(b, lnb...)
 		} else if l > ui {
@@ -95,13 +102,9 @@ func getSource(filePath string, lineNumber int, radius int) ([]byte, error) {
 		}
 	}
 
-	if len(b) > 0 {
-		eb := []byte("...\n")
-		b = append(eb, b...)
-		b = append(b, eb...)
-	}
+	hb := []byte(fmt.Sprintf("[%d-%d] %s\n", ali, aui, filePath))
 
-	return b, nil
+	return append(hb, b...), nil
 }
 
 // Stringer interface methods

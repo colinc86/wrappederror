@@ -92,7 +92,7 @@ fmt.Println(e.Metadata())
 (#1) (≈0) 2021-03-06 23:26:58.760018 -0600 CST m=+0.000599020
 ```
 
-The package keeps track of the number of similar errors by keeping a hash map of the errors that have been wrapped. It 128-bit hash of an error's `Error() string` method and keeps a count of the number of identical hashes. You can turn this behavior on/off by using the `SetTrackSimilarErrors(track bool)` function.
+The package keeps track of the number of similar errors by keeping a hash map of the errors that have been wrapped. It creates a 128-bit hash of an error's `Error() string` method and keeps a count of the number of identical hashes. You can turn this behavior on/off by using the `SetTrackSimilarErrors(track bool)` function.
 
 #### Depth
 
@@ -228,13 +228,13 @@ fmt.Println(e2.Caller().Source())
 ```
 
 ```
-...
-e0 := we.New(nil, "error A")
-e1 := we.New(e0, "error B")
-e2 := we.New(e1, "error C")
+[47-51] /Users/colin/Documents/Programming/Go/wrappederror/wcaller_test.go
 
-fmt.Printf("e0 depth: %d\n", e0.Depth())
-...
+func TestCallerSource(t *testing.T) {
+	c := currentCaller(1)
+	if c.Source() == "" {
+		t.Error("Expected a source trace.")
+
 ```
 
 By default, when possible, the caller collects the immediate two lines above and below the caller. If you want more or less information you can set (and check) the radius with the `SetSourceFragmentRadius(radius int)` and `SourceFragmentRadius() int` functions.
