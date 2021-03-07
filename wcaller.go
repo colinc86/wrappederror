@@ -7,7 +7,6 @@ import (
 	"path"
 	"runtime"
 	"runtime/debug"
-	"sync"
 )
 
 // Values to use when we can't get components of the caller.
@@ -16,13 +15,6 @@ const (
 	callerFunctionNameUnknown string = "unknown function"
 	callerLineNumberUnknown   int    = 0
 )
-
-// The radius around the detected line number when creating a source code
-// fragment.
-var sourceFragmentRadius int = 2
-
-// The mutex to use when accessing the sourceFragmentRadius variable.
-var sourceFragmentMutex = &sync.RWMutex{}
 
 // A type containing call information.
 type wCaller struct {

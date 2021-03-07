@@ -25,21 +25,3 @@ type Caller interface {
 	// currently being debugged.
 	Source() string
 }
-
-// Exported functions
-
-// SetSourceFragmentRadius sets the radius of the source fragment obtained from
-// source files at the line that the caller was created on.
-func SetSourceFragmentRadius(radius int) {
-	sourceFragmentMutex.Lock()
-	sourceFragmentRadius = radius
-	sourceFragmentMutex.Unlock()
-}
-
-// SourceFragmentRadius gets the radius of source fragments obtained from source
-// files.
-func SourceFragmentRadius() int {
-	sourceFragmentMutex.RLock()
-	defer sourceFragmentMutex.RUnlock()
-	return sourceFragmentRadius
-}

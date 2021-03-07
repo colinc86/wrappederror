@@ -29,16 +29,26 @@ type wError struct {
 
 // New creates and returns a new wrapped error.
 func New(err error, context interface{}) Error {
+	var caller *wCaller
+	if CaptureCaller() {
+		caller = currentCaller(2)
+	}
+
+	var process *wProcess
+	if CaptureProcess() {
+		process = currentProcess()
+	}
+
 	return &wError{
 		context: context,
 		inner:   err,
-		caller:  currentCaller(2),
-		process: currentProcess(),
+		caller:  caller,
+		process: process,
 		time:    time.Now(),
 	}
 }
 
-// Error interface methods
+// (Wrapped) Error interface methods
 
 func (e wError) Context() interface{} {
 	return e.context

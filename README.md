@@ -6,22 +6,28 @@ Package wrappederror is an `error` type for Go that utilizes the `errors` packag
 
 It contains handy methods to examine the error chain, the stack and your source, and plays nicely with other `error` types.
 
+---
+
 ## Features
 
-- [x] Wrap/unwrap errors
-- [x] Give errors context
-- [x] Examine error chain
-  - [x] Walk
-  - [x] Depth
-  - [x] Prettified trace
-- [x] Examine caller
-  - [x] File, function and line
-  - [x] Stack trace
-  - [x] Source code
-- [x] Examine process
-  - [x] Num routines, CPUs and cgo calls
-  - [x] Memory statistics
-  - [x] Programmatic breakpoints
+- [x] [Wrap/unwrap errors](#wrapping-errors)
+- [x] [Give errors context](#wrapping-errors)
+- [x] [Configurable](#configuring-errors)
+- [x] [Examine error chain](#examining-errors)
+  - [x] [Depth](#depth)
+  - [x] [Walk](#walk)
+  - [x] [Trace](#trace)
+  - [x] [Context](#error-and-context)
+- [x] [Examine caller](#caller)
+  - [x] [File, function and line](#file-function-and-line)
+  - [x] [Stack trace](#stack-trace)
+  - [x] [Source fragment](#source-fragment)
+- [x] [Examine process](#process)
+  - [x] [Num routines, CPUs and cgo calls](#goroutines-cpus-and-cgo)
+  - [x] [Memory statistics](#memory-statistics)
+  - [x] [Programmatic breakpoints](#debugging)
+
+---
 
 ## Installing
 
@@ -30,6 +36,8 @@ Navigate to your module and execute the following.
 ```bash
 $ go get github.com/colinc86/wrappederror
 ```
+
+---
 
 ## Using
 
@@ -61,6 +69,7 @@ An error's context doesn't have to be a string.
 ```go
 myObj := &MyObj{}
 if data, err := json.Marshal(myObj); err != nil {
+  // If we failed to marshal myObj, then attach it to the error for context
   return we.New(err, myObj)
 }
 ```
@@ -76,10 +85,12 @@ Wrapped errors have _depth_. That is, the number of errors after itself in the e
 For eample, the following prints the depth of each error in the chain.
 
 ```go
+// Create some errors
 e0 := we.New(nil, "error A")
 e1 := we.New(e0, "error B")
 e2 := we.New(e1, "error C")
 
+// Print their depths
 fmt.Printf("e0 depth: %d\n", e0.Depth())
 fmt.Printf("e1 depth: %d\n", e1.Depth())
 fmt.Printf("e2 depth: %d\n", e2.Depth())
@@ -97,19 +108,19 @@ Step through the error chain with the `Walk` method.
 
 ```go
 e2.Walk(func (err error) bool {
-  // Do something with the error.
+  // Do something with the error
 
   if err == ErrSomeParticularType {
-    // Don't continue with the walk.
+    // Don't continue with the walk
     return false
   }
 
   if errors.Unwrap(err) == nil {
-    // This is the last error in the chain.
-    // Do something else.
+    // This is the last error in the chain...
+    // Do something else
   }
 
-  // Continue with the walk.
+  // Continue with the walk
   return true
 })
 ```
@@ -119,6 +130,7 @@ e2.Walk(func (err error) bool {
 Get an error trace by calling the `Trace` method. This method returns a prettified string representation of an error with caller information.
 
 ```go
+// Print an error trace
 fmt.Println(e2.Trace())
 ```
 
@@ -133,6 +145,7 @@ fmt.Println(e2.Trace())
 The error's `Error` method returns an inline string representation of the entire error chain.
 
 ```go
+// Print the entire error chain
 fmt.Println(e2.Error())
 ```
 
@@ -143,6 +156,7 @@ error C: error B: error A
 To only examine the receivers context, use the `Context() interface{}` method.
 
 ```go
+// Only print the error's context
 fmt.Printf("%+v", e2.Context())
 ```
 
@@ -152,9 +166,12 @@ error C
 
 #### Caller
 
-Errors contain call information accessible from the `Caller` method. 
+By default, errors contain call information accessible from the `Caller` method. See the [Configuring Errors](#configuring-errors) section for more information.
+
+##### File, Function and Line
 
 ```go
+// Print call information
 fmt.Println(e2.Caller())
 ```
 
@@ -162,9 +179,12 @@ fmt.Println(e2.Caller())
 main.function (main.go:19)
 ```
 
+##### Stack Trace
+
 Along with basic file, function and line information, you can use the caller to provide a stack trace of the goroutine the error was created on.
 
 ```go
+// Print a stack trace
 fmt.Println(e.Caller().Stack())
 ```
 
@@ -182,9 +202,12 @@ created by testing.(*T).Run
   /usr/local/Cellar/go/1.16/libexec/src/testing/testing.go:1239 +0x63c
 ```
 
+##### Source Fragment
+
 When debugging, the caller type also collects source code information.
 
 ```go
+// Print the source code around the line that the error was created on
 fmt.Println(e2.Caller().Source())
 ```
 
@@ -201,16 +224,23 @@ fmt.Printf("e0 depth: %d\n", e0.Depth())
 By default, when possible, the caller collects the immediate two lines above and below the caller. If you want more or less information you can set (and check) the radius with the `SetSourceFragmentRadius(radius int)` and `SourceFragmentRadius() int` functions.
 
 ```go
+// If the radius hasn't been set to 5...
 if we.SourceFragmentRadius() != 5 {
+  // Set the radius to 5
   we.SetSourceFragmentRadius(5)
 }
 ```
 
 #### Process
 
-Use the `Process()` method to get information about the current process. Memory statistics are also available with the `e.Process().Memory()` method but don't print in the process's string value.
+Use the `Process()` method to get information about the current process. See the [Configuring Errors](#configuring-errors) section for more information.
+
+##### Goroutines, CPUs and CGO
+
+Process types contain some general process information like the number of current goroutines, the number of available CPUs, and the number of cgo functions executed.
 
 ```go
+// Print the process information when the error was created
 fmt.Println(e.Process())
 ```
 
@@ -218,14 +248,26 @@ fmt.Println(e.Process())
 goroutines: 2, cpus: 16, cgos: 0
 ```
 
-#### Debugging
+##### Memory Statistics
+
+Memory statistics are also available with the `e.Process().Memory()` method.
+
+```go
+// Print the allocated memory at the time of the error
+fmt.Printf("Allocated memory at %s: %d bytes\n", e.Time(), e.Process().Memory().Alloc)
+```
+
+##### Debugging
 
 It is also possible to trigger a breakpoint programatically when an error is received using the `Process` type.
 
 ```go
 // doSomething returns a wrapped error
 if e := doSomething(); e != nil {
+  // Initiate a breakpoint
   e.Process().Break()
+
+  // Continue
   return we
 }
 ```
@@ -233,17 +275,28 @@ if e := doSomething(); e != nil {
 By default, all calls to `Process.Break` are ignored. A call to `SetIgnoreBreakpoints(false)` must happen before `Process` types will attempt to break.
 
 ```go
-if !we.IgnoreBreakpoints() {
-  we.SetIgnoreBreakpoints(true) // Ignore all breakpoints
-}
+// Ignore all breakpoints if we aren't debugging
+we.SetIgnoreBreakpoints(os.Getenv("DEBUG") != "true")
 
 e := New(nil, err)
-e.Break() // Does nothing
 
-we.SetIgnoreBreakpoints(false) // Break on calls to Break
-
-e.Break() // Time to debug!
+// Only attempts to break if the env var DEBUG is "true"
+e.Break()
 ```
+
+### Configuring Errors
+
+Some of the behaviors of new errors can be configured using the follwing table of functions. Only the getters are listed, but setters exist for each.
+
+| Function                     | Default Value | Description |
+|:-----------------------------|:--------------|:------------|
+| `CaptureCaller() bool`       | `true`        | Determines whether or not new errors will capture their call information. If you don't need to capture call information, you can set this to `false`. Be advised, future calls to `Caller()` on new errors will return `nil`. |
+| `CaptureProcess() bool`      | `true`        | Determines whether or not new errors will capture process information. If you don't need to capture process information, you can set this to `false`. Same as `CaptureCaller`, future calls to `Process()` on new errors will return `nil`. |
+| `SourceFragmentRadius() int` | `2`           | The line radius of source fragments collected during debugging. For example, if the error is created on line 15 in a file, then (using the default radius of 2) source would be collected from lines 13 through 17. |
+| `IgnoreBreakpoints() bool`   | `true`        | Determines whether or not breakpoints should be ignored when calling `Process().Break()`. |
+
+
+---
 
 ## Contributing
 
