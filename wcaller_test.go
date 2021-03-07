@@ -1,7 +1,6 @@
 package wrappederror
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -50,6 +49,4 @@ func TestCallerSource(t *testing.T) {
 	if c.Source() == "" {
 		t.Error("Expected a source trace.")
 	}
-
-	fmt.Println(c.Source())
 }
