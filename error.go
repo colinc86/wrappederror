@@ -1,7 +1,6 @@
 package wrappederror
 
 import (
-	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 // information.
 type Error struct {
 	error
-	encoding.TextMarshaler
 	json.Marshaler
 
 	// The error's context.
@@ -228,14 +226,9 @@ func (e Error) Is(target error) bool {
 	return is
 }
 
-// TextMarshaler interface methods
-
-func (e Error) MarshalText() ([]byte, error) {
-	return []byte(e.Error()), nil
-}
-
 // JSON Marshaler interface methods
 
+// MarshalJSON marshals the error in to JSON data.
 func (e Error) MarshalJSON() ([]byte, error) {
 	return json.Marshal(newJSONWError(e))
 }
