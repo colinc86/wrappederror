@@ -6,26 +6,27 @@ Package wrappederror implements an `error` type in Go for wrapping errors.
 
 It contains handy methods to examine the error chain, stack and your source, and it plays nicely with other `error` types.
 
-- 🎁 [Wrapping Errors](#🎁-wrapping-errors)
-- 🔍 [Examining Errors](#🔍-examining-errors)
-  - 🗂 [Metadata](#🗂-metadata)
-  - 📏 [Depth](#📏-depth)
-  - 👣 [Walk](#👣-walk)
-  - ⛓ [Trace](#⛓-trace)
-  - 🖇 [Error and Context](#🖇-error-and-context)
-  - 📇 [Caller](#📇-caller)
-    - 📄 [File, Function and Line](#📄-file-function-and-line)
-    - 🧬 [Stack Trace](#🧬-stack-trace)
-    - 🧩 [Source Fragments](#🧩-source-fragments)
-  - 🔬 [Process](#🔬-process)
-    - 💻 [Num Routines, CPUs and CGO](#💻-goroutines-cpus-and-cgo)
-    - 📊 [Memory Statistics](#📊-memory-statistics)
-    - 📌 [Programmatic Breakpoints](#📌-debugging)
-- 🚨 [Severity Detection](#🚨-severity-detection)
-- 🧱 [Marshaling Errors](#🧱-marshaling-errors)
-- 🗒 [Formatting Errors](#🗒-formatting-errors)
-- 🎛 [Configuring Errors](#🎛-configuring-errors)
-- 🧵 [Thread Safety](#🧵-thread-safety)
+- 🎁 [Wrapping Errors](#-wrapping-errors)
+- 🔍 [Examining Errors](#-examining-errors)
+  - 🖇 [Error and Context](#-error-and-context)
+  - 📏 [Depth](#-depth)
+  - 🔗 [Chain](#-chain)
+  - 👣 [Walk](#-walk)
+  - 🗺 [Trace](#-trace)
+  - 🗂 [Metadata](#-metadata)
+  - 📇 [Caller](#-caller)
+    - 📄 [File, Function and Line](#-file-function-and-line)
+    - 🧬 [Stack Trace](#-stack-trace)
+    - 🧩 [Source Fragments](#-source-fragments)
+  - 🔬 [Process](#-process)
+    - 💻 [Num Routines, CPUs and CGO](#-goroutines-cpus-and-cgo)
+    - 📊 [Memory Statistics](#-memory-statistics)
+    - 📌 [Programmatic Breakpoints](#-debugging)
+- 🚨 [Severity Detection](#-severity-detection)
+- 🧱 [Marshaling Errors](#-marshaling-errors)
+- 🗒 [Formatting Errors](#-formatting-errors)
+- 🎛 [Configuring Errors](#-configuring-errors)
+- 🧵 [Thread Safety](#-thread-safety)
 
 ## Installing
 
@@ -74,25 +75,29 @@ if data, err := json.Marshal(myObj); err != nil {
 
 There are many ways to examine an error...
 
-### 🗂 Metadata
+### 🖇 Error and Context
 
-Errors come attached with metadata. `Metadata` types contain information about the error that can be useful when debugging such as
-
-- the error's index during the process's execution created by this package,
-- the number of similar non-nil errors that have been wrapped,
-- the duration since the process was launched and when the error was created,
-- and the time that the error was created.
+The error's `Error` method returns an inline string representation of the entire error chain with each component separated by the characters `: ` (colon, space).
 
 ```go
-// Print the error's metadata
-fmt.Println(e.Metadata())
+// Print the entire error chain
+fmt.Println(e2.Error())
 ```
 
 ```
-(#1) (≈0) (+10.000280) 2021-03-07 13:29:07.179446 -0600 CST m=+10.000589560
+error C: error B: error A
 ```
 
-The package keeps track of the number of similar errors by keeping a hash map of the errors that have been wrapped. It creates a 128-bit hash of an error's `Error` method and keeps a count of the number of identical hashes. You can turn this behavior on/off by using the `SetTrackSimilarErrors` configuration method.
+To only examine the receiver's context, use the `Context` method.
+
+```go
+// Only print the error's context
+fmt.Printf("%+v", e2.Context())
+```
+
+```
+error C
+```
 
 ### 📏 Depth
 
@@ -118,9 +123,32 @@ e1 depth: 1
 e2 depth: 2
 ```
 
+### 🔗 Chain
+
+Access the error chain as a flattened slice instead of wrapped errors using the `Chain` method.
+
+```go
+// Store the slice [e2, e1, e0] in c
+c := e2.Chain()
+```
+
+Optionally, directly access an error with a given depth or index.
+
+```go
+// Get the last error in the chain
+errA := e2.ErrorWithDepth(0)
+
+// Get the first error in the chain
+errB := e2.ErrorWithIndex(0)
+
+// Gets nil
+errC := e2.ErrorWithDepth(3)
+errD := e2.ErrorWithIndex(-1)
+```
+
 ### 👣 Walk
 
-You can step through the error chain with the `Walk` method. `Walk` calls the step function for every error in the chain until either the last error unwraps to `nil`, or the step function returns `false`.
+Step through the error chain with the `Walk` method. `Walk` calls the step function for every error in the chain until either the last error unwraps to `nil`, or the step function returns `false`.
 
 ```go
 e2.Walk(func (err error) bool {
@@ -141,7 +169,7 @@ e2.Walk(func (err error) bool {
 })
 ```
 
-### ⛓ Trace
+### 🗺 Trace
 
 Get an error trace by calling the `Trace` method. This method returns a prettified string representation of the error chain with caller information. Errors in the chain not defined by this package log their depth and result of calling `Error`.
 
@@ -156,29 +184,25 @@ fmt.Println(e2.Trace())
 └ 0: main.function (main.go:59) error A
 ```
 
-### 🖇 Error and Context
+### 🗂 Metadata
 
-The error's `Error` method returns an inline string representation of the entire error chain with each component separated by the characters `: ` (colon, space).
+Errors come attached with metadata. `Metadata` types contain information about the error that can be useful when debugging such as
 
-```go
-// Print the entire error chain
-fmt.Println(e2.Error())
-```
-
-```
-error C: error B: error A
-```
-
-To only examine the receiver's context, use the `Context` method.
+- the error's index during the process's execution created by this package,
+- the number of similar non-nil errors that have been wrapped,
+- the duration since the process was launched and when the error was created,
+- and the time that the error was created.
 
 ```go
-// Only print the error's context
-fmt.Printf("%+v", e2.Context())
+// Print the error's metadata
+fmt.Println(e.Metadata)
 ```
 
 ```
-error C
+(#1) (≈0) (+10.000280) 2021-03-07 13:29:07.179446 -0600 CST m=+10.000589560
 ```
+
+The package keeps track of the number of similar errors by keeping a hash map of the errors that have been wrapped. It creates a 128-bit hash of an error's `Error` method and keeps a count of the number of identical hashes. You can turn this behavior on/off by using the `SetTrackSimilarErrors` configuration method.
 
 ### 📇 Caller
 
@@ -376,9 +400,9 @@ The available `ErrorSeverityLevel` constants are
 
 The package supports marshaling errors into JSON, but because the error type defined in this package wraps errors of type `error`, a bijective `UnmarshalJSON` method isn't possible. Intead of attempting to guess at wrapped types, the package just doesn't try.
 
-Error fields with `Caller`, `Process` and `Metadata` types _do_ implement both JSON marshaling and unmarshaling.
+The types `Caller`, `Process`, `Metadata` and `ErrorSeverity` _do_ implement both JSON marshaling and unmarshaling.
 
-The error chain can get long, and if errors are collecting caller and process information, then JSON objects for a "single" top-level error may be disproportionately large compared to the rest of the JSON object they're embedded in. The package provides a function for determining how errors are marshaled in to JSON data.
+The error chain can get long, and if errors are collecting caller and process information, then JSON objects for a "single" top-level error may be disproportionately large compared to the rest of the JSON object they're embedded in. The package provides a method for determining how errors are marshaled in to JSON data.
 
 ```go
 // Marshal full JSON objects
@@ -551,5 +575,3 @@ The package was built with thread-safety in mind. You can modify configuration s
 Feel free to contribute either through reporting issues or submitting pull requests.
 
 Thank you to @GregWWalters for ideas, tips and advice.
-
----

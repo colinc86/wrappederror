@@ -92,23 +92,48 @@ func (e Error) Format(ef string) string {
 	return newFormatter().format(e, ef)
 }
 
+// Chain returns the error chain as a slice with the receiver at index 0.
+func (e Error) Chain() []error {
+	var c []error
+	var ce error = e
+	for ce != nil {
+		c = append(c, ce)
+		ce = errors.Unwrap(ce)
+	}
+	return c
+}
+
 // Walk calls the step function for each error in the error chain, including the
 // receiver, and continues until either the last error is reached, or the step
 // function returns false.
 func (e Error) Walk(step func(err error) bool) {
-	var ce error = e
-	for {
-		if !step(ce) {
+	for _, ecv := range e.Chain() {
+		if !step(ecv) {
 			break
 		}
-
-		ue := errors.Unwrap(ce)
-		if ue == nil {
-			break
-		}
-
-		ce = ue
 	}
+}
+
+// ErrorWithDepth returns the error in the chain with the given depth.
+func (e Error) ErrorWithDepth(depth int) error {
+	c := e.Chain()
+	if depth < 0 || depth >= len(c) {
+		return nil
+	}
+	return c[len(c)-depth-1]
+}
+
+// ErrorWithIndex returns the error in the chain with the given index. This is
+// the inverse index of depth.
+//
+// For example, if the error chain is [e0, e1, e2] with depths [2, 1, 0], then
+// the error at index 0 is e0, the error at index 1 is e1, and so forth.
+func (e Error) ErrorWithIndex(index int) error {
+	c := e.Chain()
+	if index < 0 || index >= len(c) {
+		return nil
+	}
+	return c[index]
 }
 
 // Depth returns the number of nested errors in the receiver. That is, the
@@ -116,15 +141,7 @@ func (e Error) Walk(step func(err error) bool) {
 //
 // For example, if an error has no nested errors, then its depth is 0.
 func (e Error) Depth() uint {
-	var d uint
-	e.Walk(func(err error) bool {
-		if errors.Unwrap(err) == nil {
-			return false
-		}
-		d++
-		return true
-	})
-	return d
+	return uint(len(e.Chain()) - 1)
 }
 
 // Trace returns a prettified string representation of the error chain.
@@ -135,12 +152,14 @@ func (e Error) Trace() string {
 	}
 
 	var msg string
-	e.Walk(func(err error) bool {
-		u := errors.Unwrap(err) != nil
+	c := e.Chain()
+
+	for i, err := range c {
+		end := i == len(c)-1
 		var p string
-		if msg == "" {
+		if i == 0 {
 			p = "┌"
-		} else if u {
+		} else if end {
 			p = "└"
 		} else {
 			p = "├"
@@ -156,12 +175,10 @@ func (e Error) Trace() string {
 		}
 
 		msg += em
-		if u {
+		if end {
 			msg += "\n"
 		}
-
-		return true
-	})
+	}
 
 	return msg
 }
@@ -215,7 +232,9 @@ func (e Error) Context() interface{} {
 
 func (e Error) Error() string {
 	var s string
-	e.Walk(func(err error) bool {
+	c := e.Chain()
+
+	for i, err := range c {
 		if we, ok := err.(Error); ok {
 			s += fmt.Sprintf("%+v", we.context)
 		} else if we, ok := err.(*Error); ok {
@@ -224,12 +243,11 @@ func (e Error) Error() string {
 			s += err.Error()
 		}
 
-		if errors.Unwrap(err) != nil {
+		if i < len(c)-1 {
 			s += ": "
 		}
+	}
 
-		return true
-	})
 	return s
 }
 
