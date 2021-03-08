@@ -9,7 +9,7 @@ var packageState = newState()
 
 // Config returns the package's configuration.
 func Config() *Configuration {
-	return packageState.configuration
+	return packageState.config
 }
 
 // ResetState resets the package's state to that at process launch.

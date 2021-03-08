@@ -4,21 +4,19 @@ import (
 	"errors"
 	"fmt"
 	"testing"
-	"time"
 )
 
 func TestCurrentMetadata(t *testing.T) {
-	packageState.configuration.SetNextErrorIndex(1)
-	time.Sleep(time.Second * 10)
-	m1 := currentMetadata(nil)
-	m2 := currentMetadata(nil)
+	packageState.config.SetNextErrorIndex(1)
+	m1 := newMetadata(nil)
+	m2 := newMetadata(nil)
 
-	if m1.ErrorIndex != 1 {
-		t.Errorf("Expected starting index 1 but received: %d\n", m1.ErrorIndex)
+	if m1.Index != 1 {
+		t.Errorf("Expected starting index 1 but received: %d\n", m1.Index)
 	}
 
-	if m1.ErrorIndex+1 != m2.ErrorIndex {
-		t.Errorf("Expected m2.index (%d) to be one greater than m1.index (%d).\n", m2.ErrorIndex, m1.ErrorIndex)
+	if m1.Index+1 != m2.Index {
+		t.Errorf("Expected m2.index (%d) to be one greater than m1.index (%d).\n", m2.Index, m1.Index)
 	}
 
 	fmt.Println(m2)
@@ -31,23 +29,23 @@ func TestSimilarMetadata(t *testing.T) {
 	e4 := errors.New("testerror")
 	e5 := errors.New("testerror")
 
-	_ = currentMetadata(e1)
-	_ = currentMetadata(e2)
-	m1 := currentMetadata(e3)
-	_ = currentMetadata(e4)
-	m2 := currentMetadata(e5)
-	_ = currentMetadata(nil)
-	m3 := currentMetadata(nil)
+	_ = newMetadata(e1)
+	_ = newMetadata(e2)
+	m1 := newMetadata(e3)
+	_ = newMetadata(e4)
+	m2 := newMetadata(e5)
+	_ = newMetadata(nil)
+	m3 := newMetadata(nil)
 
-	if m1.SimilarErrors != 2 {
-		t.Errorf("Expected 2 similar errors but received %d.\n", m1.SimilarErrors)
+	if m1.Similar != 2 {
+		t.Errorf("Expected 2 similar errors but received %d.\n", m1.Similar)
 	}
 
-	if m2.SimilarErrors != 1 {
-		t.Errorf("Expected 1 similar error but received %d.\n", m2.SimilarErrors)
+	if m2.Similar != 1 {
+		t.Errorf("Expected 1 similar error but received %d.\n", m2.Similar)
 	}
 
-	if m3.SimilarErrors != 0 {
-		t.Errorf("Expected no similar errors but received %d.\n", m3.SimilarErrors)
+	if m3.Similar != 0 {
+		t.Errorf("Expected no similar errors but received %d.\n", m3.Similar)
 	}
 }

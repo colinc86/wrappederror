@@ -98,9 +98,9 @@ func TestTrace(t *testing.T) {
 
 func TestCaller(t *testing.T) {
 	we := New(nil, "test")
-	if we.Caller().File() != "werror_test.go" ||
-		we.Caller().Function() != "github.com/colinc86/wrappederror.TestCaller" {
-		t.Errorf("Incorrect caller: %s\n", we.(*wError).caller)
+	if we.Caller.File != "error_test.go" ||
+		we.Caller.Function != "github.com/colinc86/wrappederror.TestCaller" {
+		t.Errorf("Incorrect caller: %s\n", we.Caller)
 	}
 }
 
@@ -114,7 +114,7 @@ func TestUnwrap(t *testing.T) {
 }
 
 func TestErrorMarshalJSON(t *testing.T) {
-	packageState.configuration.SetMarshalMinimalJSON(true)
+	packageState.config.SetMarshalMinimalJSON(true)
 
 	e1 := errors.New("error 1")
 	e2 := New(e1, "error 2")

@@ -5,28 +5,6 @@ import (
 	"runtime"
 )
 
-// Process types contain process information.
-type Process interface {
-	fmt.Stringer
-
-	// The number of go routines when the process was created.
-	Routines() int
-
-	// The number of available logical CPUs.
-	CPUs() int
-
-	// The number of cgo calls made by the process.
-	CGO() int
-
-	// The memory statistics when the process was created.
-	Memory() *runtime.MemStats
-
-	// Break executes a breakpoint trap at the point that this method is called.
-	Break()
-}
-
-// Implementation
-
 // Values to use when we can't get components of the process.
 const (
 	processRoutinesNumberUnknown int = -1
@@ -34,79 +12,56 @@ const (
 	processCGONumberUnknown      int = 0
 )
 
-// A type containing process information.
-type wProcess struct {
-	NumRoutines int               `json:"goroutines"`
-	NumCPUs     int               `json:"cpus"`
-	NumCGO      int               `json:"cgos"`
-	MemStats    *runtime.MemStats `json:"memory,omitempty"`
+// Process types contain process information at their time of creation.
+type Process struct {
+
+	// The number of go routines.
+	Routines int `json:"goroutines"`
+
+	// The number of available logical CPUs.
+	CPUs int `json:"cpus"`
+
+	// The number of cgo calls made by the process.
+	CGO int `json:"cgos"`
+
+	// Memory statistics about the process.
+	Memory *runtime.MemStats `json:"memory,omitempty"`
 }
 
 // Initializers
 
-// newWProcess creates a new process with the specified components.
-func newWProcess(
-	numRoutines int,
-	numCPUs int,
-	numCGO int,
-	memStats *runtime.MemStats,
-) *wProcess {
-	return &wProcess{
-		NumRoutines: numRoutines,
-		NumCPUs:     numCPUs,
-		NumCGO:      numCGO,
-		MemStats:    memStats,
-	}
-}
-
-// Methods
-
-// currentProcess gets the current process.
-func currentProcess() *wProcess {
+// newProcess creates and returns a new process.
+func newProcess() *Process {
 	ms := new(runtime.MemStats)
 	runtime.ReadMemStats(ms)
 
-	return newWProcess(
+	return &Process{
 		runtime.NumGoroutine(),
 		runtime.NumCPU(),
 		int(runtime.NumCgoCall()),
 		ms,
-	)
+	}
 }
 
-// Stringer interface methods
+// Exported methods
 
-func (p wProcess) String() string {
-	return fmt.Sprintf(
-		"goroutines: %d, cpus: %d, cgos: %d",
-		p.NumRoutines,
-		p.NumCPUs,
-		p.NumCGO,
-	)
-}
-
-// Process interface methods
-
-func (p wProcess) Routines() int {
-	return p.NumRoutines
-}
-
-func (p wProcess) CPUs() int {
-	return p.NumCPUs
-}
-
-func (p wProcess) CGO() int {
-	return p.NumCGO
-}
-
-func (p wProcess) Memory() *runtime.MemStats {
-	return p.MemStats
-}
-
-func (p wProcess) Break() {
-	if packageState.configuration.IgnoreBreakpoints() {
+// Break executes a breakpoint trap if the configuration's ignore breakpoints
+// value is false.
+func (p Process) Break() {
+	if packageState.config.IgnoreBreakpoints() {
 		return
 	}
 
 	runtime.Breakpoint()
+}
+
+// Stringer interface methods
+
+func (p Process) String() string {
+	return fmt.Sprintf(
+		"goroutines: %d, cpus: %d, cgos: %d",
+		p.Routines,
+		p.CPUs,
+		p.CGO,
+	)
 }

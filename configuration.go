@@ -26,7 +26,7 @@ func newConfiguration() *Configuration {
 	}
 }
 
-// Exported functions
+// Exported methods
 
 // Set configures the behavior of various aspects of the wrappederror package at
 // once.

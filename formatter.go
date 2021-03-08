@@ -82,7 +82,7 @@ func newFormatter() *formatter {
 
 // format returns a formatted version of the error according to the given error
 // format string.
-func (f formatter) format(e wError, ef string) string {
+func (f formatter) format(e Error, ef string) string {
 	indexes := f.findIndexes(ef, tokenLeadingSubstring)
 	format, tokens := f.replaceTokens(ef, indexes)
 
@@ -116,7 +116,10 @@ func (f formatter) findIndexes(ef string, s string) []int {
 // string.
 //
 // It returns, in order, the error format tokens that were replaced.
-func (f formatter) replaceTokens(ef string, idx []int) (string, []ErrorFormatToken) {
+func (f formatter) replaceTokens(
+	ef string,
+	idx []int,
+) (string, []ErrorFormatToken) {
 	if len(idx) == 0 {
 		return ef, nil
 	}
@@ -194,40 +197,40 @@ func (f formatter) newFormat(t string) (ErrorFormatToken, string) {
 }
 
 // value gets the value of the error for the given error format token.
-func (f formatter) value(e wError, t ErrorFormatToken) interface{} {
+func (f formatter) value(e Error, t ErrorFormatToken) interface{} {
 	switch ErrorFormatToken(t) {
 	case ErrorFormatTokenContext:
-		return e.context
+		return e.Context
 	case ErrorFormatTokenInner:
 		return e.inner.Error()
 	case ErrorFormatTokenChain:
 		return e.Error()
 	case ErrorFormatTokenFile:
-		return e.caller.FileName
+		return e.Caller.File
 	case ErrorFormatTokenFunction:
-		return e.caller.FunctionName
+		return e.Caller.Function
 	case ErrorFormatTokenLine:
-		return e.caller.LineNumber
+		return e.Caller.Line
 	case ErrorFormatTokenStack:
-		return e.caller.StackTrace
+		return e.Caller.StackTrace
 	case ErrorFormatTokenSource:
-		return e.caller.SourceFragment
+		return e.Caller.SourceFragment
 	case ErrorFormatTokenTime:
-		return e.metadata.ErrorTime
+		return e.Metadata.Time
 	case ErrorFormatTokenDuration:
-		return e.metadata.ErrorDuration.Seconds()
+		return e.Metadata.Duration.Seconds()
 	case ErrorFormatTokenIndex:
-		return e.metadata.ErrorIndex
+		return e.Metadata.Index
 	case ErrorFormatTokenSimilar:
-		return e.metadata.SimilarErrors
+		return e.Metadata.Similar
 	case ErrorFormatTokenRoutines:
-		return e.process.NumRoutines
+		return e.Process.Routines
 	case ErrorFormatTokenCPUs:
-		return e.process.NumCPUs
+		return e.Process.CPUs
 	case ErrorFormatTokenCGO:
-		return e.process.NumCGO
+		return e.Process.CGO
 	case ErrorFormatTokenMemory:
-		return e.process.MemStats
+		return e.Process.Memory
 	default:
 		return nil
 	}

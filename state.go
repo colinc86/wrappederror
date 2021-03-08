@@ -9,7 +9,7 @@ import (
 type state struct {
 	errorHashMap      *errorMap
 	processLaunchTime *configValue
-	configuration     *Configuration
+	config            *Configuration
 }
 
 // Initializers
@@ -19,23 +19,23 @@ func newState() *state {
 	return &state{
 		errorHashMap:      newErrorMap(),
 		processLaunchTime: newConfigValue(time.Now()),
-		configuration:     newConfiguration(),
+		config:            newConfiguration(),
 	}
 }
 
-// Non-exported methods.
+// Methods
 
 // reset resets the state to its initial value.
 func (s *state) reset() {
 	s.errorHashMap.hashMap = new(sync.Map)
 	s.processLaunchTime.set(time.Now())
-	s.configuration = newConfiguration()
+	s.config = newConfiguration()
 }
 
 // getSimilarErrorCount gets and returns the number of errors in the error hash
 // map equal to err.
 func (s state) getSimilarErrorCount(err error) int {
-	if !s.configuration.TrackSimilarErrors() || err == nil {
+	if !s.config.TrackSimilarErrors() || err == nil {
 		return 0
 	}
 

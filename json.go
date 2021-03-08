@@ -27,9 +27,9 @@ type jsonWErrorMinimal struct {
 
 // The full JSON error type.
 type jsonWErrorFull struct {
-	Caller   *wCaller    `json:"caller"`
-	Process  *wProcess   `json:"process"`
-	Metadata *wMetadata  `json:"metadata"`
+	Caller   *Caller     `json:"caller"`
+	Process  *Process    `json:"process"`
+	Metadata *Metadata   `json:"metadata"`
 	Context  interface{} `json:"context"`
 	Depth    int         `json:"depth"`
 	Inner    interface{} `json:"wraps"`
@@ -37,20 +37,23 @@ type jsonWErrorFull struct {
 
 // Initializers
 
+// newJSONErrorOrWError examines an error for its type and either initializes
+// a new jsonError or jsonWError.
 func newJSONErrorOrWError(err error) interface{} {
 	if err == nil {
 		return nil
 	}
 
-	if we, ok := err.(wError); ok {
+	if we, ok := err.(Error); ok {
 		return newJSONWError(we)
-	} else if we, ok := err.(*wError); ok {
+	} else if we, ok := err.(*Error); ok {
 		return newJSONWError(*we)
 	}
 
 	return newJSONError(err)
 }
 
+// newJSONError creates a new jsonError.
 func newJSONError(err error) *jsonError {
 	return &jsonError{
 		Error: err.Error(),
@@ -58,34 +61,37 @@ func newJSONError(err error) *jsonError {
 	}
 }
 
-func newJSONWError(e wError) interface{} {
-	if packageState.configuration.MarshalMinimalJSON() {
+// newJSONWError creates a new jsonWError.
+func newJSONWError(e Error) interface{} {
+	if packageState.config.MarshalMinimalJSON() {
 		return newJSONWErrorMinimal(e)
 	}
 	return newJSONWErrorFull(e)
 }
 
-func newJSONWErrorMinimal(e wError) *jsonWErrorMinimal {
+// newJSONWErrorMinimal creates a new minimal json error.
+func newJSONWErrorMinimal(e Error) *jsonWErrorMinimal {
 	return &jsonWErrorMinimal{
-		Context:  e.context,
+		Context:  e.Context,
 		Depth:    int(e.Depth()),
-		Time:     e.metadata.ErrorTime,
-		Duration: e.metadata.ErrorDuration,
-		Index:    e.metadata.ErrorIndex,
-		Similar:  e.metadata.SimilarErrors,
-		File:     e.caller.FileName,
-		Function: e.caller.FunctionName,
-		Line:     e.caller.LineNumber,
+		Time:     e.Metadata.Time,
+		Duration: e.Metadata.Duration,
+		Index:    e.Metadata.Index,
+		Similar:  e.Metadata.Similar,
+		File:     e.Caller.File,
+		Function: e.Caller.Function,
+		Line:     e.Caller.Line,
 		Inner:    newJSONErrorOrWError(e.inner),
 	}
 }
 
-func newJSONWErrorFull(e wError) *jsonWErrorFull {
+// newJSONWErrorFull creates a new full json error.
+func newJSONWErrorFull(e Error) *jsonWErrorFull {
 	return &jsonWErrorFull{
-		Caller:   e.caller,
-		Process:  e.process,
-		Metadata: e.metadata,
-		Context:  e.context,
+		Caller:   e.Caller,
+		Process:  e.Process,
+		Metadata: e.Metadata,
+		Context:  e.Context,
 		Depth:    int(e.Depth()),
 		Inner:    newJSONErrorOrWError(e.inner),
 	}
