@@ -175,7 +175,7 @@ func (e Error) Trace() string {
 		}
 
 		msg += em
-		if end {
+		if !end {
 			msg += "\n"
 		}
 	}
