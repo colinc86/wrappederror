@@ -1,10 +1,10 @@
 # Package 🎁'derror
 
-[![Go Tests](https://github.com/colinc86/wrappederror/actions/workflows/go-test.yml/badge.svg?branch=main)](https://github.com/colinc86/wrappederror/actions/workflows/go-test.yml) [![Go Reference](https://pkg.go.dev/badge/github.com/colinc86/wrappederror.svg)](https://pkg.go.dev/github.com/colinc86/wrappederror)
+[![Go Tests](https://github.com/colinc86/wrappederror/actions/workflows/go-test.yml/badge.svg?branch=main)](https://github.com/colinc86/wrappederror/actions/workflows/go-test.yml) ![Go Coverage](https://img.shields.io/badge/Go%20Coverage-74%25-lightgreen.svg?style=flat) [![Go Reference](https://pkg.go.dev/badge/github.com/colinc86/wrappederror.svg)](https://pkg.go.dev/github.com/colinc86/wrappederror)
 
-Package wrappederror implements an `error` type for Go for wrapping errors.
+Package wrappederror implements an `error` type in Go for wrapping errors.
 
-It contains handy methods to examine the error chain, the stack and your source, and plays nicely with other `error` types.
+It contains handy methods to examine the error chain, stack and your source, and plays nicely with other `error` types.
 
 ## Features
 

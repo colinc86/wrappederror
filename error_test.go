@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+// Tests
+
 func TestNewError_1(t *testing.T) {
 	outerErrorMessage := "outer error"
 	we := New(nil, outerErrorMessage)
@@ -124,5 +126,51 @@ func TestErrorMarshalJSON(t *testing.T) {
 	_, err := json.Marshal(e4)
 	if err != nil {
 		t.Fatalf("Error marshaling json: %s\n", err)
+	}
+}
+
+// Benchmarks
+
+func BenchmarkNewError_Defaults(b *testing.B) {
+	packageState.reset()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = New(nil, "")
+	}
+}
+
+func BenchmarkNewError_NoCaller(b *testing.B) {
+	packageState.reset()
+	packageState.config.SetCaptureCaller(false)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = New(nil, "")
+	}
+}
+
+func BenchmarkNewError_NoProcess(b *testing.B) {
+	packageState.reset()
+	packageState.config.SetCaptureProcess(false)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = New(nil, "")
+	}
+}
+
+func BenchmarkNewError_NoCallerNoProcess(b *testing.B) {
+	packageState.reset()
+	packageState.config.SetCaptureCaller(false)
+	packageState.config.SetCaptureProcess(false)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = New(nil, "")
+	}
+}
+
+func BenchmarkNewError_NoFeatures(b *testing.B) {
+	packageState.config.Set(false, false, 0, true, 1, false, true)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = New(nil, "")
 	}
 }
