@@ -151,6 +151,10 @@ func (f formatter) replaceToken(ef string, idx int) (string, ErrorFormatToken) {
 		return ef, errorFormatTokenNone
 	}
 
+	if ef[idx:idx+3] != tokenLeadingSubstring {
+		return ef, errorFormatTokenNone
+	}
+
 	formatToken, verb := f.newFormat(ef[idx : idx+tokenLength])
 	efc := ef[:idx] + verb + ef[idx+tokenLength:]
 	return efc, formatToken
