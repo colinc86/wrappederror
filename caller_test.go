@@ -6,8 +6,8 @@ import (
 )
 
 func TestNewCaller_Skip(t *testing.T) {
-	c1 := newCaller(1, 2)
-	c2 := newCaller(2, 2)
+	c1 := newCaller(1, false, 2)
+	c2 := newCaller(2, false, 2)
 
 	if c1.File == c2.File {
 		t.Errorf("Incorrect file names.")
@@ -23,13 +23,13 @@ func TestNewCaller_Skip(t *testing.T) {
 }
 
 func TestNewCaller_Radius(t *testing.T) {
-	c := newCaller(1, 3)
+	c := newCaller(1, true, 3)
 	n := len(strings.Split(strings.TrimSpace(c.SourceFragment), "\n"))
 	if n != 8 {
 		t.Errorf("Expected 9 lines, but found %d.\n", n)
 	}
 
-	c = newCaller(1, 1)
+	c = newCaller(1, true, 1)
 	n = len(strings.Split(strings.TrimSpace(c.SourceFragment), "\n"))
 	if n != 4 {
 		t.Errorf("Expected 5 lines, but found %d.\n", n)
@@ -37,35 +37,35 @@ func TestNewCaller_Radius(t *testing.T) {
 }
 
 func TestCallerFile(t *testing.T) {
-	c := newCaller(1, 2)
+	c := newCaller(1, false, 2)
 	if c.File != "caller_test.go" {
 		t.Errorf("Incorrect file name: %s\n", c.File)
 	}
 }
 
 func TestCallerFunction(t *testing.T) {
-	c := newCaller(1, 2)
+	c := newCaller(1, false, 2)
 	if c.Function != "github.com/colinc86/wrappederror.TestCallerFunction" {
 		t.Errorf("Incorrect function name: %s\n", c.Function)
 	}
 }
 
 func TestCallerLine(t *testing.T) {
-	c := newCaller(1, 2)
+	c := newCaller(1, false, 2)
 	if c.Line != 54 {
 		t.Errorf("Incorrect line number: %d\n", c.Line)
 	}
 }
 
 func TestCallerStack(t *testing.T) {
-	c := newCaller(1, 2)
+	c := newCaller(1, false, 2)
 	if c.StackTrace == "" {
 		t.Error("Expected a stack trace.")
 	}
 }
 
 func TestCallerSource(t *testing.T) {
-	c := newCaller(1, 2)
+	c := newCaller(1, true, 2)
 	if c.SourceFragment == "" {
 		t.Error("Expected a source trace.")
 	}

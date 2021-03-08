@@ -35,6 +35,10 @@ type Metadata struct {
 	// To turn this off, use the `SetTrackSimilarErrors` function. When tracking
 	// is off, this method always returns 0.
 	Similar int `json:"similar"`
+
+	// The package automatically detects the severity of errors based on
+	// ErrorSeverity instances registered through the package's configuration.
+	Severity *ErrorSeverity `json:"severity,omitempty"`
 }
 
 // Initializers
@@ -47,6 +51,7 @@ func newMetadata(err error) *Metadata {
 		Duration: packageState.getDurationSinceLaunch(),
 		Index:    packageState.config.getAndIncrementNextErrorIndex(),
 		Similar:  packageState.getSimilarErrorCount(err),
+		Severity: packageState.getBestMatchSeverity(err),
 	}
 }
 

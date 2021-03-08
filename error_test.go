@@ -168,7 +168,7 @@ func BenchmarkNewError_NoCallerNoProcess(b *testing.B) {
 }
 
 func BenchmarkNewError_NoFeatures(b *testing.B) {
-	packageState.config.Set(false, false, 0, true, 1, false, true)
+	packageState.config.Set(false, false, false, 0, true, 1, false, true)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = New(nil, "")

@@ -72,7 +72,7 @@ func newJSONWError(e Error) interface{} {
 // newJSONWErrorMinimal creates a new minimal json error.
 func newJSONWErrorMinimal(e Error) *jsonWErrorMinimal {
 	return &jsonWErrorMinimal{
-		Context:  e.Context,
+		Context:  e.context,
 		Depth:    int(e.Depth()),
 		Time:     e.Metadata.Time,
 		Duration: e.Metadata.Duration,
@@ -91,7 +91,7 @@ func newJSONWErrorFull(e Error) *jsonWErrorFull {
 		Caller:   e.Caller,
 		Process:  e.Process,
 		Metadata: e.Metadata,
-		Context:  e.Context,
+		Context:  e.context,
 		Depth:    int(e.Depth()),
 		Inner:    newJSONErrorOrWError(e.inner),
 	}

@@ -2,13 +2,14 @@ package wrappederror
 
 // Configuration types keep track of the package's configuration.
 type Configuration struct {
-	captureCaller        *configValue
-	captureProcess       *configValue
-	marshalMinimalJSON   *configValue
-	sourceFragmentRadius *configValue
-	ignoreBreakpoints    *configValue
-	nextErrorIndex       *configValue
-	trackSimilarErrors   *configValue
+	captureCaller          *configValue
+	captureProcess         *configValue
+	marshalMinimalJSON     *configValue
+	captureSourceFragments *configValue
+	sourceFragmentRadius   *configValue
+	ignoreBreakpoints      *configValue
+	nextErrorIndex         *configValue
+	trackSimilarErrors     *configValue
 }
 
 // Initializers
@@ -16,13 +17,14 @@ type Configuration struct {
 // newConfiguration creates and returns a new configuration.
 func newConfiguration() *Configuration {
 	return &Configuration{
-		captureCaller:        newConfigValue(true),
-		captureProcess:       newConfigValue(true),
-		marshalMinimalJSON:   newConfigValue(true),
-		sourceFragmentRadius: newConfigValue(2),
-		ignoreBreakpoints:    newConfigValue(true),
-		nextErrorIndex:       newConfigValue(1),
-		trackSimilarErrors:   newConfigValue(true),
+		captureCaller:          newConfigValue(true),
+		captureProcess:         newConfigValue(true),
+		marshalMinimalJSON:     newConfigValue(true),
+		captureSourceFragments: newConfigValue(true),
+		sourceFragmentRadius:   newConfigValue(2),
+		ignoreBreakpoints:      newConfigValue(true),
+		nextErrorIndex:         newConfigValue(1),
+		trackSimilarErrors:     newConfigValue(true),
 	}
 }
 
@@ -35,6 +37,7 @@ func newConfiguration() *Configuration {
 func (c *Configuration) Set(
 	captureCaller bool,
 	captureProcess bool,
+	captureSourceFragments bool,
 	sourceFragmentRadius int,
 	ignoreBreakpoints bool,
 	nextErrorIndex int,
@@ -43,6 +46,7 @@ func (c *Configuration) Set(
 ) {
 	c.SetCaptureCaller(captureCaller)
 	c.SetCaptureProcess(captureProcess)
+	c.SetCaptureSourceFragments(captureSourceFragments)
 	c.SetSourceFragmentRadius(sourceFragmentRadius)
 	c.SetIgnoreBreakpoints(ignoreBreakpoints)
 	c.SetNextErrorIndex(nextErrorIndex)
@@ -90,6 +94,18 @@ func (c *Configuration) MarshalMinimalJSON() bool {
 }
 
 // Caller interface values
+
+// CaptureSourceFragments gets a boolean that indicates whether or not new
+// errors capture source fragments.
+func (c *Configuration) CaptureSourceFragments() bool {
+	return c.captureSourceFragments.get().(bool)
+}
+
+// SetCaptureSourceFragments sets a flag to determine whether or not new errors
+// capture source fragments.
+func (c *Configuration) SetCaptureSourceFragments(capture bool) {
+	c.captureSourceFragments.set(capture)
+}
 
 // SetSourceFragmentRadius sets the radius of the source fragment obtained from
 // source files at the line that the caller was created on.

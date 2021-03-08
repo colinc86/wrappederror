@@ -4,7 +4,7 @@ import "testing"
 
 func TestConfigurationSet(t *testing.T) {
 	c := newConfiguration()
-	c.Set(false, false, 0, false, 0, false, false)
+	c.Set(false, false, false, 0, false, 0, false, false)
 
 	if c.captureCaller.get().(bool) != false {
 		t.Error("Capture caller not set.")
@@ -12,6 +12,10 @@ func TestConfigurationSet(t *testing.T) {
 
 	if c.captureProcess.get().(bool) != false {
 		t.Error("Capture process not set.")
+	}
+
+	if c.captureSourceFragments.get().(bool) != false {
+		t.Error("Capture source fragments not set.")
 	}
 
 	if c.sourceFragmentRadius.get().(int) != 0 {

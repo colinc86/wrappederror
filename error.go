@@ -9,15 +9,6 @@ import (
 // Error types wrap an error and provide context, caller and process
 // information.
 type Error struct {
-	error
-	json.Marshaler
-
-	// The error's context.
-	//
-	// When an error is wrapped, it is given context. An error's context can be a
-	// string description or any other type of information that is pertinent to
-	// the error being wrapped.
-	Context interface{}
 
 	// The error's caller.
 	//
@@ -49,17 +40,28 @@ type Error struct {
 	// Metadata is always captured, but some of its properties are configurable.
 	Metadata *Metadata
 
+	// The error's context.
+	//
+	// When an error is wrapped, it is given context. An error's context can be a
+	// string description or any other type of information that is pertinent to
+	// the error being wrapped.
+	context interface{}
+
 	// The inner error that this wrapped error wraps.
 	inner error
 }
 
 // Initializers
 
-// New creates and returns a new error.
+// New creates and returns a new error with an inner error and context.
 func New(err error, ctx interface{}) *Error {
 	var caller *Caller
 	if packageState.config.CaptureCaller() {
-		caller = newCaller(2, packageState.config.SourceFragmentRadius())
+		caller = newCaller(
+			2,
+			packageState.config.CaptureSourceFragments(),
+			packageState.config.SourceFragmentRadius(),
+		)
 	}
 
 	var process *Process
@@ -68,7 +70,7 @@ func New(err error, ctx interface{}) *Error {
 	}
 
 	return &Error{
-		Context:  ctx,
+		context:  ctx,
 		Caller:   caller,
 		Process:  process,
 		Metadata: newMetadata(err),
@@ -164,28 +166,6 @@ func (e Error) Trace() string {
 	return msg
 }
 
-// Error interface methods
-
-func (e Error) Error() string {
-	var s string
-	e.Walk(func(err error) bool {
-		if we, ok := err.(Error); ok {
-			s += fmt.Sprintf("%+v", we.Context)
-		} else if we, ok := err.(*Error); ok {
-			s += fmt.Sprintf("%+v", we.Context)
-		} else {
-			s += err.Error()
-		}
-
-		if errors.Unwrap(err) != nil {
-			s += ": "
-		}
-
-		return true
-	})
-	return s
-}
-
 // Unwrap returns the wrapped error or nil if one doesn't exist.
 func (e Error) Unwrap() error {
 	return e.inner
@@ -224,6 +204,33 @@ func (e Error) Is(target error) bool {
 		return true
 	})
 	return is
+}
+
+// Context returns the error's context.
+func (e Error) Context() interface{} {
+	return e.context
+}
+
+// Error interface methods
+
+func (e Error) Error() string {
+	var s string
+	e.Walk(func(err error) bool {
+		if we, ok := err.(Error); ok {
+			s += fmt.Sprintf("%+v", we.context)
+		} else if we, ok := err.(*Error); ok {
+			s += fmt.Sprintf("%+v", we.context)
+		} else {
+			s += err.Error()
+		}
+
+		if errors.Unwrap(err) != nil {
+			s += ": "
+		}
+
+		return true
+	})
+	return s
 }
 
 // JSON Marshaler interface methods

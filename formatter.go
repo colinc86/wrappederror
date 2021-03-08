@@ -58,6 +58,12 @@ const (
 
 	// ErrorFormatTokenMemory prints the error's context.
 	ErrorFormatTokenMemory ErrorFormatToken = "${{MEM}}"
+
+	// ErrorFormatTokenSeverityTitle prints the error's severity title.
+	ErrorFormatTokenSeverityTitle ErrorFormatToken = "${{SET}}"
+
+	// ErrorFormatTokenSeverityLevel prints the error's severity level.
+	ErrorFormatTokenSeverityLevel ErrorFormatToken = "${{SEL}}"
 )
 
 const (
@@ -195,6 +201,10 @@ func (f formatter) newFormat(t string) (ErrorFormatToken, string) {
 		return ErrorFormatTokenCGO, "%d"
 	case ErrorFormatTokenMemory:
 		return ErrorFormatTokenMemory, "%+v"
+	case ErrorFormatTokenSeverityTitle:
+		return ErrorFormatTokenSeverityTitle, "%s"
+	case ErrorFormatTokenSeverityLevel:
+		return ErrorFormatTokenSeverityLevel, "%s"
 	default:
 		return errorFormatTokenNone, ""
 	}
@@ -210,14 +220,29 @@ func (f formatter) value(e Error, t ErrorFormatToken) interface{} {
 	case ErrorFormatTokenChain:
 		return e.Error()
 	case ErrorFormatTokenFile:
+		if e.Caller == nil {
+			return callerFileNameUnknown
+		}
 		return e.Caller.File
 	case ErrorFormatTokenFunction:
+		if e.Caller == nil {
+			return callerFunctionNameUnknown
+		}
 		return e.Caller.Function
 	case ErrorFormatTokenLine:
+		if e.Caller == nil {
+			return callerLineNumberUnknown
+		}
 		return e.Caller.Line
 	case ErrorFormatTokenStack:
+		if e.Caller == nil {
+			return ""
+		}
 		return e.Caller.StackTrace
 	case ErrorFormatTokenSource:
+		if e.Caller == nil {
+			return ""
+		}
 		return e.Caller.SourceFragment
 	case ErrorFormatTokenTime:
 		return e.Metadata.Time
@@ -228,13 +253,35 @@ func (f formatter) value(e Error, t ErrorFormatToken) interface{} {
 	case ErrorFormatTokenSimilar:
 		return e.Metadata.Similar
 	case ErrorFormatTokenRoutines:
+		if e.Process == nil {
+			return processRoutinesNumberUnknown
+		}
 		return e.Process.Routines
 	case ErrorFormatTokenCPUs:
+		if e.Process == nil {
+			return processCPUsNumberUnknown
+		}
 		return e.Process.CPUs
 	case ErrorFormatTokenCGO:
+		if e.Process == nil {
+			return processCGONumberUnknown
+		}
 		return e.Process.CGO
 	case ErrorFormatTokenMemory:
+		if e.Process == nil {
+			return nil
+		}
 		return e.Process.Memory
+	case ErrorFormatTokenSeverityTitle:
+		if e.Metadata.Severity == nil {
+			return ""
+		}
+		return e.Metadata.Severity.Title
+	case ErrorFormatTokenSeverityLevel:
+		if e.Metadata.Severity == nil {
+			return ""
+		}
+		return e.Metadata.Severity.Level
 	default:
 		return nil
 	}

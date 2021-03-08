@@ -1,13 +1,13 @@
 package wrappederror
 
 import (
-	"sync"
 	"time"
 )
 
 // state types keep track of the package's current state.
 type state struct {
-	errorHashMap      *errorMap
+	errorMap          *errorMap
+	serverityTable    *severityTable
 	processLaunchTime *configValue
 	config            *Configuration
 }
@@ -16,19 +16,18 @@ type state struct {
 
 // newState creates and returns a new state structure.
 func newState() *state {
-	return &state{
-		errorHashMap:      newErrorMap(),
-		processLaunchTime: newConfigValue(time.Now()),
-		config:            newConfiguration(),
-	}
+	s := new(state)
+	s.reset()
+	return s
 }
 
 // Methods
 
 // reset resets the state to its initial value.
 func (s *state) reset() {
-	s.errorHashMap.hashMap = new(sync.Map)
-	s.processLaunchTime.set(time.Now())
+	s.errorMap = newErrorMap()
+	s.serverityTable = newSeverityTable()
+	s.processLaunchTime = newConfigValue(time.Now())
 	s.config = newConfiguration()
 }
 
@@ -39,9 +38,27 @@ func (s state) getSimilarErrorCount(err error) int {
 		return 0
 	}
 
-	st := s.errorHashMap.similarErrors(err)
-	s.errorHashMap.addError(err)
+	st := s.errorMap.similarErrors(err)
+	s.errorMap.addError(err)
 	return st
+}
+
+// registerSeverity registers the severity with the state's severity table.
+func (s state) registerSeverity(severity ErrorSeverity) error {
+	return s.serverityTable.register(severity)
+}
+
+// unregisterSeverity unregisters the severity from the state's severity table.
+func (s state) unregisterSeverity(severity ErrorSeverity) {
+	s.serverityTable.unregister(severity)
+}
+
+// getBestMatchSeverity gets the best match severity for the given error.
+func (s state) getBestMatchSeverity(err error) *ErrorSeverity {
+	if s := s.serverityTable.bestMatch(err); s != errorSeverityUnknown {
+		return &s
+	}
+	return nil
 }
 
 // getDurationSinceLaunch gets the current duration since the process was

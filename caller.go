@@ -40,15 +40,18 @@ type Caller struct {
 // Initializers
 
 // currentCaller gets the current caller with the given skip.
-func newCaller(skip int, fragmentRadius int) *Caller {
+func newCaller(skip int, captureFragment bool, fragmentRadius int) *Caller {
 	st := debug.Stack()
 
 	if pc, fp, ln, ok := runtime.Caller(skip); ok {
-		so, _ := getSource(
-			fp,
-			ln,
-			fragmentRadius,
-		)
+		var so []byte
+		if captureFragment {
+			so, _ = getSource(
+				fp,
+				ln,
+				fragmentRadius,
+			)
+		}
 
 		_, fin := path.Split(fp)
 		if f := runtime.FuncForPC(pc); f != nil {
