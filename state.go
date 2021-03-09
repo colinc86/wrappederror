@@ -8,7 +8,7 @@ import (
 type state struct {
 	errorMap          *errorMap
 	serverityTable    *severityTable
-	processLaunchTime *configValue
+	processLaunchTime *safeValue
 	config            *Configuration
 }
 
@@ -27,7 +27,7 @@ func newState() *state {
 func (s *state) reset() {
 	s.errorMap = newErrorMap()
 	s.serverityTable = newSeverityTable()
-	s.processLaunchTime = newConfigValue(time.Now())
+	s.processLaunchTime = newSafeValue(time.Now())
 	s.config = newConfiguration()
 }
 

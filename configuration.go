@@ -1,15 +1,27 @@
 package wrappederror
 
+// Default configuration values.
+const (
+	configDefaultCaptureCaller          = true
+	configDefaultCaptureProcess         = true
+	configDefaultMarshalMinimalJSON     = true
+	configDefaultCaptureSourceFragments = true
+	configDefaultIgnoreBreakpoints      = true
+	configDefaultTrackSimilarErrors     = true
+	configDefaultSourceFragmentRadius   = 2
+	configDefaultNextErrorIndex         = 1
+)
+
 // Configuration types keep track of the package's configuration.
 type Configuration struct {
-	captureCaller          *configValue
-	captureProcess         *configValue
-	marshalMinimalJSON     *configValue
-	captureSourceFragments *configValue
-	sourceFragmentRadius   *configValue
-	ignoreBreakpoints      *configValue
-	nextErrorIndex         *configValue
-	trackSimilarErrors     *configValue
+	captureCaller          *safeValue
+	captureProcess         *safeValue
+	marshalMinimalJSON     *safeValue
+	captureSourceFragments *safeValue
+	sourceFragmentRadius   *safeValue
+	ignoreBreakpoints      *safeValue
+	nextErrorIndex         *safeValue
+	trackSimilarErrors     *safeValue
 }
 
 // Initializers
@@ -17,14 +29,14 @@ type Configuration struct {
 // newConfiguration creates and returns a new configuration.
 func newConfiguration() *Configuration {
 	return &Configuration{
-		captureCaller:          newConfigValue(true),
-		captureProcess:         newConfigValue(true),
-		marshalMinimalJSON:     newConfigValue(true),
-		captureSourceFragments: newConfigValue(true),
-		sourceFragmentRadius:   newConfigValue(2),
-		ignoreBreakpoints:      newConfigValue(true),
-		nextErrorIndex:         newConfigValue(1),
-		trackSimilarErrors:     newConfigValue(true),
+		captureCaller:          newSafeValue(configDefaultCaptureCaller),
+		captureProcess:         newSafeValue(configDefaultCaptureProcess),
+		marshalMinimalJSON:     newSafeValue(configDefaultMarshalMinimalJSON),
+		captureSourceFragments: newSafeValue(configDefaultCaptureSourceFragments),
+		sourceFragmentRadius:   newSafeValue(configDefaultSourceFragmentRadius),
+		ignoreBreakpoints:      newSafeValue(configDefaultIgnoreBreakpoints),
+		nextErrorIndex:         newSafeValue(configDefaultNextErrorIndex),
+		trackSimilarErrors:     newSafeValue(configDefaultTrackSimilarErrors),
 	}
 }
 

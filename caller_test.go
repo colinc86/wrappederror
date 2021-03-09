@@ -47,7 +47,7 @@ func TestCallerFunction(t *testing.T) {
 
 func TestCallerLine(t *testing.T) {
 	c := newCaller(1, false, 2)
-	if c.Line != 39 {
+	if c.Line != 49 {
 		t.Errorf("Incorrect line number: %d\n", c.Line)
 	}
 }

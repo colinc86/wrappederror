@@ -27,7 +27,7 @@ func TestConfigurationSet(t *testing.T) {
 	t.Run("Marshal minimal JSON", func(t *testing.T) { testConfigurationValue(t, c.marshalMinimalJSON, false) })
 }
 
-func testConfigurationValue(t *testing.T, v *configValue, ev interface{}) {
+func testConfigurationValue(t *testing.T, v *safeValue, ev interface{}) {
 	if v.get() != ev {
 		t.Errorf("Expected %v but received %v.\n", ev, v.get())
 	}
