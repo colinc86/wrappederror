@@ -8,11 +8,11 @@ It contains handy methods to examine the error chain, stack and your source, and
 
 - 🎁 [Wrapping Errors](#-wrapping-errors)
 - 🔍 [Examining Errors](#-examining-errors)
-  - 🖇 [Error and Context](#-error-and-context)
   - 📏 [Depth](#-depth)
   - 🔗 [Chain](#-chain)
   - 👣 [Walk](#-walk)
   - 🗺 [Trace](#-trace)
+  - 🖇 [Error and Context](#-error-and-context)
   - 🗂 [Metadata](#-metadata)
   - 📇 [Caller](#-caller)
     - 📄 [File, Function and Line](#-file-function-and-line)
@@ -74,30 +74,6 @@ if data, err := json.Marshal(myObj); err != nil {
 ## 🔍 Examining Errors
 
 There are many ways to examine an error...
-
-### 🖇 Error and Context
-
-The error's `Error` method returns an inline string representation of the entire error chain with each component separated by the characters `: ` (colon, space).
-
-```go
-// Print the entire error chain
-fmt.Println(e2.Error())
-```
-
-```
-error C: error B: error A
-```
-
-To only examine the receiver's context, use the `Context` method.
-
-```go
-// Only print the error's context
-fmt.Printf("%+v", e2.Context())
-```
-
-```
-error C
-```
 
 ### 📏 Depth
 
@@ -184,10 +160,35 @@ fmt.Println(e2.Trace())
 └ 0: main.function (main.go:59) error A
 ```
 
+### 🖇 Error and Context
+
+The error's `Error` method returns an inline string representation of the entire error chain with each component separated by the characters `: ` (colon, space).
+
+```go
+// Print the entire error chain
+fmt.Println(e2.Error())
+```
+
+```
+error C: error B: error A
+```
+
+To only examine the receiver's context, use the `Context` method.
+
+```go
+// Only print the error's context
+fmt.Printf("%+v", e2.Context())
+```
+
+```
+error C
+```
+
 ### 🗂 Metadata
 
 Errors come attached with metadata. `Metadata` types contain information about the error that can be useful when debugging such as
 
+- the severity of the error, if enabled, (see [Severity Detection](#-severity-detection)),
 - the error's index during the process's execution created by this package,
 - the number of similar non-nil errors that have been wrapped,
 - the duration since the process was launched and when the error was created,
@@ -199,7 +200,7 @@ fmt.Println(e.Metadata)
 ```
 
 ```
-(#1) (≈0) (+10.000280) 2021-03-07 13:29:07.179446 -0600 CST m=+10.000589560
+[moderate] Network Timeout (#1) (≈0) (+10.000280) 2021-03-07 13:29:07.179446 -0600 CST m=+10.000589560
 ```
 
 The package keeps track of the number of similar errors by keeping a hash map of the errors that have been wrapped. It creates a 128-bit hash of an error's `Error` method and keeps a count of the number of identical hashes. You can turn this behavior on/off by using the `SetTrackSimilarErrors` configuration method.

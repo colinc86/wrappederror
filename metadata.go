@@ -58,8 +58,14 @@ func newMetadata(err error) *Metadata {
 // Stringer interface methods
 
 func (m Metadata) String() string {
+	s := ""
+	if m.Severity != nil {
+		s = fmt.Sprintf("%s ", m.Severity)
+	}
+
 	return fmt.Sprintf(
-		"(#%d) (≈%d) (+%f) %s",
+		"%s(#%d) (≈%d) (+%f) %s",
+		s,
 		m.Index,
 		m.Similar,
 		m.Duration.Seconds(),
