@@ -6,6 +6,13 @@ import (
 	"fmt"
 )
 
+var (
+	errorChainDelimiter            string = ": "
+	errorTraceFirstItemDecoration  string = "┌"
+	errorTraceMiddleItemDecoration string = "├"
+	errorTraceLastItemDecoration   string = "└"
+)
+
 // Error types wrap an error and provide context, caller and process
 // information.
 type Error struct {
@@ -140,8 +147,8 @@ func (e Error) ErrorWithIndex(index int) error {
 // number of errors after, but not including, this error in the error chain.
 //
 // For example, if an error has no nested errors, then its depth is 0.
-func (e Error) Depth() uint {
-	return uint(len(e.Chain()) - 1)
+func (e Error) Depth() int {
+	return len(e.Chain()) - 1
 }
 
 // Trace returns a prettified string representation of the error chain.
@@ -158,20 +165,20 @@ func (e Error) Trace() string {
 		end := i == len(c)-1
 		var p string
 		if i == 0 {
-			p = "┌"
+			p = errorTraceFirstItemDecoration
 		} else if end {
-			p = "└"
+			p = errorTraceLastItemDecoration
 		} else {
-			p = "├"
+			p = errorTraceMiddleItemDecoration
 		}
 
 		var em string
 		if we, ok := err.(Error); ok {
-			em = fmt.Sprintf("%s %d: %s %s", p, d, we.Caller, we.Error())
+			em = fmt.Sprintf("%s %d: %s %+v", p, d-i, we.Caller, we.context)
 		} else if we, ok := err.(*Error); ok {
-			em = fmt.Sprintf("%s %d: %s %s", p, d, we.Caller, we.Error())
+			em = fmt.Sprintf("%s %d: %s %+v", p, d-i, we.Caller, we.context)
 		} else {
-			em = fmt.Sprintf("%s %d: %s", p, d, err.Error())
+			em = fmt.Sprintf("%s %d: %s", p, d-i, err.Error())
 		}
 
 		msg += em
@@ -193,14 +200,18 @@ func (e Error) Unwrap() error {
 // false.
 func (e Error) As(target interface{}) bool {
 	as := false
-	e.Walk(func(err error) bool {
-		if err == target {
-			target = err
-			as = true
-			return false
-		}
-		return true
-	})
+
+	if we, ok := target.(*Error); ok {
+		e.Walk(func(err error) bool {
+			if wei, ok := err.(Error); ok && wei.Error() == we.Error() {
+				target = &wei
+				as = true
+				return false
+			}
+			return true
+		})
+	}
+
 	return as
 }
 
@@ -214,7 +225,7 @@ func (e Error) As(target interface{}) bool {
 func (e Error) Is(target error) bool {
 	is := false
 	e.Walk(func(err error) bool {
-		if err == target {
+		if err.Error() == target.Error() {
 			is = true
 			return false
 		}
@@ -244,7 +255,7 @@ func (e Error) Error() string {
 		}
 
 		if i < len(c)-1 {
-			s += ": "
+			s += errorChainDelimiter
 		}
 	}
 

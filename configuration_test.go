@@ -2,58 +2,52 @@ package wrappederror
 
 import "testing"
 
+func TestNewConfiguration(t *testing.T) {
+	c := newConfiguration()
+	t.Run("Capture caller", func(t *testing.T) { testConfigurationValue(t, c.captureCaller, true) })
+	t.Run("Capture process", func(t *testing.T) { testConfigurationValue(t, c.captureProcess, true) })
+	t.Run("Capture source fragments", func(t *testing.T) { testConfigurationValue(t, c.captureSourceFragments, true) })
+	t.Run("Source fragment radius", func(t *testing.T) { testConfigurationValue(t, c.sourceFragmentRadius, 2) })
+	t.Run("Ignore breakpoints", func(t *testing.T) { testConfigurationValue(t, c.ignoreBreakpoints, true) })
+	t.Run("Next error index", func(t *testing.T) { testConfigurationValue(t, c.nextErrorIndex, 1) })
+	t.Run("Track similar errors", func(t *testing.T) { testConfigurationValue(t, c.trackSimilarErrors, true) })
+	t.Run("Marshal minimal JSON", func(t *testing.T) { testConfigurationValue(t, c.marshalMinimalJSON, true) })
+}
+
 func TestConfigurationSet(t *testing.T) {
 	c := newConfiguration()
 	c.Set(false, false, false, 0, false, 0, false, false)
-
-	if c.captureCaller.get().(bool) != false {
-		t.Error("Capture caller not set.")
-	}
-
-	if c.captureProcess.get().(bool) != false {
-		t.Error("Capture process not set.")
-	}
-
-	if c.captureSourceFragments.get().(bool) != false {
-		t.Error("Capture source fragments not set.")
-	}
-
-	if c.sourceFragmentRadius.get().(int) != 0 {
-		t.Error("Source fragment radius not set.")
-	}
-
-	if c.ignoreBreakpoints.get().(bool) != false {
-		t.Error("Ignore breakpoints not set.")
-	}
-
-	if c.nextErrorIndex.get().(int) != 0 {
-		t.Error("Next error index not set.")
-	}
-
-	if c.trackSimilarErrors.get().(bool) != false {
-		t.Error("Track similar errors not set.")
-	}
-
-	if c.marshalMinimalJSON.get().(bool) != false {
-		t.Error("Marshal minimal JSON not set.")
-	}
+	t.Run("Capture caller", func(t *testing.T) { testConfigurationValue(t, c.captureCaller, false) })
+	t.Run("Capture process", func(t *testing.T) { testConfigurationValue(t, c.captureProcess, false) })
+	t.Run("Capture source fragments", func(t *testing.T) { testConfigurationValue(t, c.captureSourceFragments, false) })
+	t.Run("Source fragment radius", func(t *testing.T) { testConfigurationValue(t, c.sourceFragmentRadius, 0) })
+	t.Run("Ignore breakpoints", func(t *testing.T) { testConfigurationValue(t, c.ignoreBreakpoints, false) })
+	t.Run("Next error index", func(t *testing.T) { testConfigurationValue(t, c.nextErrorIndex, 0) })
+	t.Run("Track similar errors", func(t *testing.T) { testConfigurationValue(t, c.trackSimilarErrors, false) })
+	t.Run("Marshal minimal JSON", func(t *testing.T) { testConfigurationValue(t, c.marshalMinimalJSON, false) })
 }
 
-func TestConfigurationIgnoreBreakpoints(t *testing.T) {
+func TestConfigurationGetAndIncrementNextErrorIndex(t *testing.T) {
 	c := newConfiguration()
-	if c.IgnoreBreakpoints() != true {
-		t.Error("Unexpected ignore breakpoints value.")
+	t.Run("Default error index", func(t *testing.T) { testConfigurationNextErrorIndex(t, c, 1) })
+	t.Run("Next error index", func(t *testing.T) { testConfigurationNextErrorIndex(t, c, 2) })
+	t.Run("Third error index", func(t *testing.T) { testConfigurationNextErrorIndex(t, c, 3) })
+	t.Run("Reset error index", func(t *testing.T) {
+		c.SetNextErrorIndex(1)
+		testConfigurationNextErrorIndex(t, c, 1)
+	})
+}
+
+// Test helpers
+
+func testConfigurationValue(t *testing.T, v *configValue, ev interface{}) {
+	if v.get() != ev {
+		t.Errorf("Expected %v but received %v.\n", ev, v.get())
 	}
 }
 
-func TestConfigurationNextErrorIndex(t *testing.T) {
-	packageState.reset()
-	if packageState.config.NextErrorIndex() != 1 {
-		t.Errorf("Expected next error index value 1: %d.\n", packageState.config.NextErrorIndex())
-	}
-
-	_ = New(nil, "test")
-	if packageState.config.NextErrorIndex() != 2 {
-		t.Errorf("Expected next error index value 2: %d.\n", packageState.config.NextErrorIndex())
+func testConfigurationNextErrorIndex(t *testing.T, c *Configuration, i int) {
+	if c.getAndIncrementNextErrorIndex() != i {
+		t.Errorf("Expected %d but recived %+v.\n", i, c.NextErrorIndex())
 	}
 }

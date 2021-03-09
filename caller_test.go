@@ -1,7 +1,6 @@
 package wrappederror
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -22,20 +21,6 @@ func TestNewCaller_Skip(t *testing.T) {
 	}
 }
 
-func TestNewCaller_Radius(t *testing.T) {
-	c := newCaller(1, true, 3)
-	n := len(strings.Split(strings.TrimSpace(c.Fragment.Source), "\n"))
-	if n != 7 {
-		t.Errorf("Expected 7 lines, but found %d.\n", n)
-	}
-
-	c = newCaller(1, true, 1)
-	n = len(strings.Split(strings.TrimSpace(c.Fragment.Source), "\n"))
-	if n != 2 {
-		t.Errorf("Expected 2 lines, but found %d.\n", n)
-	}
-}
-
 func TestCallerFile(t *testing.T) {
 	c := newCaller(1, false, 2)
 	if c.File != "caller_test.go" {
@@ -52,7 +37,7 @@ func TestCallerFunction(t *testing.T) {
 
 func TestCallerLine(t *testing.T) {
 	c := newCaller(1, false, 2)
-	if c.Line != 54 {
+	if c.Line != 39 {
 		t.Errorf("Incorrect line number: %d\n", c.Line)
 	}
 }
@@ -68,12 +53,5 @@ func TestCallerSource(t *testing.T) {
 	c := newCaller(1, true, 2)
 	if c.Fragment.Source == "" {
 		t.Error("Expected a source trace.")
-	}
-}
-
-func TestGetSourceFails(t *testing.T) {
-	_, err := newSourceFragment("/something/that/does/not/exist", 0, 1)
-	if err == nil {
-		t.Error("Expected error.")
 	}
 }

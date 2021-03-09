@@ -14,49 +14,58 @@ const (
 	// ErrorFormatTokenContext prints the error's context.
 	ErrorFormatTokenContext ErrorFormatToken = "${{CTX}}"
 
-	// ErrorFormatTokenInner prints the error's context.
+	// ErrorFormatTokenInner prints the error's inner error.
 	ErrorFormatTokenInner ErrorFormatToken = "${{INN}}"
 
-	// ErrorFormatTokenChain prints the error's context.
+	// ErrorFormatTokenChain prints the error's error chain.
 	ErrorFormatTokenChain ErrorFormatToken = "${{CHN}}"
 
-	// ErrorFormatTokenFile prints the error's context.
+	// ErrorFormatTokenFile prints the error's file.
 	ErrorFormatTokenFile ErrorFormatToken = "${{FIL}}"
 
-	// ErrorFormatTokenFunction prints the error's context.
+	// ErrorFormatTokenFunction prints the error's function.
 	ErrorFormatTokenFunction ErrorFormatToken = "${{FUN}}"
 
-	// ErrorFormatTokenLine prints the error's context.
+	// ErrorFormatTokenLine prints the error's line number.
 	ErrorFormatTokenLine ErrorFormatToken = "${{LIN}}"
 
-	// ErrorFormatTokenStack prints the error's context.
+	// ErrorFormatTokenTrace prints the error's error trace.
+	ErrorFormatTokenTrace ErrorFormatToken = "${{TRC}}"
+
+	// ErrorFormatTokenStack prints the error's stack trace.
 	ErrorFormatTokenStack ErrorFormatToken = "${{STK}}"
 
-	// ErrorFormatTokenSource prints the error's context.
+	// ErrorFormatTokenSource prints the error's source fragment's lower line.
+	ErrorFormatTokenSourceLowerLine ErrorFormatToken = "${{LOL}}"
+
+	// ErrorFormatTokenSource prints the error's source fragment's upper line.
+	ErrorFormatTokenSourceUpperLine ErrorFormatToken = "${{UPL}}"
+
+	// ErrorFormatTokenSource prints the error's source fragment.
 	ErrorFormatTokenSource ErrorFormatToken = "${{SRC}}"
 
-	// ErrorFormatTokenTime prints the error's context.
+	// ErrorFormatTokenTime prints the error's time.
 	ErrorFormatTokenTime ErrorFormatToken = "${{TIM}}"
 
-	// ErrorFormatTokenDuration prints the error's context.
+	// ErrorFormatTokenDuration prints the error's duration.
 	ErrorFormatTokenDuration ErrorFormatToken = "${{DUR}}"
 
-	// ErrorFormatTokenIndex prints the error's context.
+	// ErrorFormatTokenIndex prints the error's index.
 	ErrorFormatTokenIndex ErrorFormatToken = "${{IDX}}"
 
-	// ErrorFormatTokenSimilar prints the error's context.
+	// ErrorFormatTokenSimilar prints the error's similar error count.
 	ErrorFormatTokenSimilar ErrorFormatToken = "${{SIM}}"
 
-	// ErrorFormatTokenRoutines prints the error's context.
+	// ErrorFormatTokenRoutines prints the error's num routines.
 	ErrorFormatTokenRoutines ErrorFormatToken = "${{RTS}}"
 
-	// ErrorFormatTokenCPUs prints the error's context.
+	// ErrorFormatTokenCPUs prints the error's cpu count.
 	ErrorFormatTokenCPUs ErrorFormatToken = "${{CPU}}"
 
-	// ErrorFormatTokenCGO prints the error's context.
+	// ErrorFormatTokenCGO prints the error's cgo count.
 	ErrorFormatTokenCGO ErrorFormatToken = "${{CGO}}"
 
-	// ErrorFormatTokenMemory prints the error's context.
+	// ErrorFormatTokenMemory prints the error's memory.
 	ErrorFormatTokenMemory ErrorFormatToken = "${{MEM}}"
 
 	// ErrorFormatTokenSeverityTitle prints the error's severity title.
@@ -181,8 +190,14 @@ func (f formatter) newFormat(t string) (ErrorFormatToken, string) {
 		return ErrorFormatTokenFunction, "%s"
 	case ErrorFormatTokenLine:
 		return ErrorFormatTokenLine, "%d"
+	case ErrorFormatTokenTrace:
+		return ErrorFormatTokenTrace, "%s"
 	case ErrorFormatTokenStack:
 		return ErrorFormatTokenStack, "%s"
+	case ErrorFormatTokenSourceLowerLine:
+		return ErrorFormatTokenSourceLowerLine, "%d"
+	case ErrorFormatTokenSourceUpperLine:
+		return ErrorFormatTokenSourceUpperLine, "%d"
 	case ErrorFormatTokenSource:
 		return ErrorFormatTokenSource, "%s"
 	case ErrorFormatTokenTime:
@@ -234,17 +249,35 @@ func (f formatter) value(e Error, t ErrorFormatToken) interface{} {
 			return callerLineNumberUnknown
 		}
 		return e.Caller.Line
+	case ErrorFormatTokenTrace:
+		return e.Trace()
 	case ErrorFormatTokenStack:
 		if e.Caller == nil {
-			return ""
+			return "-"
 		}
 		return e.Caller.StackTrace
-	case ErrorFormatTokenSource:
+	case ErrorFormatTokenSourceLowerLine:
 		if e.Caller == nil {
-			return ""
+			return "-"
 		}
 		if e.Caller.Fragment == nil {
-			return ""
+			return "-"
+		}
+		return e.Caller.Fragment.LowerLine
+	case ErrorFormatTokenSourceUpperLine:
+		if e.Caller == nil {
+			return "-"
+		}
+		if e.Caller.Fragment == nil {
+			return "-"
+		}
+		return e.Caller.Fragment.UpperLine
+	case ErrorFormatTokenSource:
+		if e.Caller == nil {
+			return "-"
+		}
+		if e.Caller.Fragment == nil {
+			return "-"
 		}
 		return e.Caller.Fragment.Source
 	case ErrorFormatTokenTime:
@@ -277,12 +310,12 @@ func (f formatter) value(e Error, t ErrorFormatToken) interface{} {
 		return e.Process.Memory
 	case ErrorFormatTokenSeverityTitle:
 		if e.Metadata.Severity == nil {
-			return ""
+			return "-"
 		}
 		return e.Metadata.Severity.Title
 	case ErrorFormatTokenSeverityLevel:
 		if e.Metadata.Severity == nil {
-			return ""
+			return "-"
 		}
 		return e.Metadata.Severity.Level
 	default:
