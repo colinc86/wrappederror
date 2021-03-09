@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestNewCaller_Skip(t *testing.T) {
+func TestNewCaller(t *testing.T) {
 	c1 := newCaller(1, false, 2)
 	c2 := newCaller(2, false, 2)
 
@@ -18,6 +18,16 @@ func TestNewCaller_Skip(t *testing.T) {
 
 	if c1.Line == c2.Line {
 		t.Errorf("Incorrect line numbers.")
+	}
+}
+
+func TestNewCallerFailure_1(t *testing.T) {
+	c := newCaller(10, false, 2)
+	if c.File != callerFileNameUnknown ||
+		c.Function != callerFunctionNameUnknown ||
+		c.Line != callerLineNumberUnknown ||
+		c.Fragment != nil {
+		t.Errorf("Unknown caller information %s.\n", c)
 	}
 }
 

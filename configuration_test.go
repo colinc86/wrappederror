@@ -27,6 +27,12 @@ func TestConfigurationSet(t *testing.T) {
 	t.Run("Marshal minimal JSON", func(t *testing.T) { testConfigurationValue(t, c.marshalMinimalJSON, false) })
 }
 
+func testConfigurationValue(t *testing.T, v *configValue, ev interface{}) {
+	if v.get() != ev {
+		t.Errorf("Expected %v but received %v.\n", ev, v.get())
+	}
+}
+
 func TestConfigurationGetAndIncrementNextErrorIndex(t *testing.T) {
 	c := newConfiguration()
 	t.Run("Default error index", func(t *testing.T) { testConfigurationNextErrorIndex(t, c, 1) })
@@ -36,14 +42,6 @@ func TestConfigurationGetAndIncrementNextErrorIndex(t *testing.T) {
 		c.SetNextErrorIndex(1)
 		testConfigurationNextErrorIndex(t, c, 1)
 	})
-}
-
-// Test helpers
-
-func testConfigurationValue(t *testing.T, v *configValue, ev interface{}) {
-	if v.get() != ev {
-		t.Errorf("Expected %v but received %v.\n", ev, v.get())
-	}
 }
 
 func testConfigurationNextErrorIndex(t *testing.T, c *Configuration, i int) {
