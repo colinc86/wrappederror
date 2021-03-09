@@ -243,7 +243,10 @@ func (f formatter) value(e Error, t ErrorFormatToken) interface{} {
 		if e.Caller == nil {
 			return ""
 		}
-		return e.Caller.SourceFragment
+		if e.Caller.Fragment == nil {
+			return ""
+		}
+		return e.Caller.Fragment.Source
 	case ErrorFormatTokenTime:
 		return e.Metadata.Time
 	case ErrorFormatTokenDuration:

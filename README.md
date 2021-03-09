@@ -245,11 +245,11 @@ created by testing.(*T).Run
 
 #### 🧩 Source Fragments
 
-When possible, the caller type also captures source code information.
+When possible, and permitted, the caller type also captures source code information.
 
 ```go
 // Print the source code around the line that the error was created on
-fmt.Println(e2.Caller.SourceFragment)
+fmt.Println(e2.Caller.Fragment)
 ```
 
 ```

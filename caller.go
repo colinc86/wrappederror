@@ -1,9 +1,7 @@
 package wrappederror
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"path"
 	"runtime"
 	"runtime/debug"
@@ -31,10 +29,10 @@ type Caller struct {
 	// A stack trace of the goroutine that created the caller.
 	StackTrace string `json:"stackTrace"`
 
-	// Source returns raw source code around the line that the caller was created
-	// on. This function will return an empty string if the process is not
+	// Fragment returns raw source code around the line that the caller was
+	// created on. This function will return an empty string if the process is not
 	// currently being debugged.
-	SourceFragment string `json:"sourceFragment"`
+	Fragment *SourceFragment `json:"sourceFragment"`
 }
 
 // Initializers
@@ -44,13 +42,9 @@ func newCaller(skip int, captureFragment bool, fragmentRadius int) *Caller {
 	st := debug.Stack()
 
 	if pc, fp, ln, ok := runtime.Caller(skip); ok {
-		var so []byte
+		var sf *SourceFragment
 		if captureFragment {
-			so, _ = getSource(
-				fp,
-				ln,
-				fragmentRadius,
-			)
+			sf, _ = newSourceFragment(fp, ln, fragmentRadius)
 		}
 
 		_, fin := path.Split(fp)
@@ -60,7 +54,7 @@ func newCaller(skip int, captureFragment bool, fragmentRadius int) *Caller {
 				f.Name(),
 				ln,
 				string(st),
-				string(so),
+				sf,
 			}
 		}
 
@@ -69,7 +63,7 @@ func newCaller(skip int, captureFragment bool, fragmentRadius int) *Caller {
 			callerFunctionNameUnknown,
 			ln,
 			string(st),
-			string(so),
+			sf,
 		}
 	}
 
@@ -79,7 +73,7 @@ func newCaller(skip int, captureFragment bool, fragmentRadius int) *Caller {
 		callerFunctionNameUnknown,
 		callerLineNumberUnknown,
 		string(st),
-		"",
+		nil,
 	}
 }
 
@@ -92,43 +86,4 @@ func (c Caller) String() string {
 		c.File,
 		c.Line,
 	)
-}
-
-// Non-exported functions
-
-// getSource gets lines of source from filePath around lineNumber.
-func getSource(filePath string, lineNumber int, radius int) ([]byte, error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	s := bufio.NewScanner(f)
-	l := 0
-	li := lineNumber - radius
-	ui := lineNumber + radius
-	var b []byte
-
-	ali := 0
-	aui := 0
-
-	for s.Scan() {
-		l++
-
-		if l >= li && l <= ui {
-			if ali == 0 {
-				ali = l
-			}
-			aui = l
-			lnb := append(s.Bytes(), []byte("\n")...)
-			b = append(b, lnb...)
-		} else if l > ui {
-			break
-		}
-	}
-
-	hb := []byte(fmt.Sprintf("[%d-%d] %s\n", ali, aui, filePath))
-
-	return append(hb, b...), nil
 }
