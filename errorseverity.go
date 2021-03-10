@@ -81,22 +81,14 @@ func (s ErrorSeverity) match(err error) float64 {
 	cl := 0
 
 	for _, m := range matches {
-		if len(m) < 2 {
-			continue
-		}
-		cl += m[1]
-	}
-
-	if cl > len(es) {
-		cl = len(es)
+		cl += m[1] - m[0]
 	}
 
 	return float64(cl) / float64(len(es))
 }
 
-// equals returns whether or not the receiver is equal to severity.
+// equals returns whether or not the receiver is equal to severity. Two error
+// severities are considered equal if their regular expressesions are equal.
 func (s ErrorSeverity) equals(severity *ErrorSeverity) bool {
-	return s.Title == severity.Title &&
-		s.Regex.String() == severity.Regex.String() &&
-		s.Level == severity.Level
+	return s.Regex.String() == severity.Regex.String()
 }

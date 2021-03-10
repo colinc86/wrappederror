@@ -112,13 +112,17 @@ func (f formatter) format(e Error, ef string) string {
 // findIndexes finds the indexes of the substring, s, in the error format
 // string, ef.
 func (f formatter) findIndexes(ef string, s string) []int {
+	if len(ef) == 0 || len(s) == 0 {
+		return nil
+	}
+
 	if len(ef) < len(s) {
 		return nil
 	}
 
 	var idx []int
 
-	for i := 0; i < len(ef)-len(s); i++ {
+	for i := 0; i <= len(ef)-len(s); i++ {
 		if ef[i:i+len(s)] == s {
 			idx = append(idx, i)
 		}

@@ -47,14 +47,14 @@ func newConfiguration() *Configuration {
 //
 // Configure individual properties using the Set(Property) methods.
 func (c *Configuration) Set(
-	captureCaller bool,
-	captureProcess bool,
-	captureSourceFragments bool,
-	sourceFragmentRadius int,
-	ignoreBreakpoints bool,
-	nextErrorIndex int,
-	trackSimilarErrors bool,
+	captureCaller,
+	captureProcess,
+	captureSourceFragments,
+	ignoreBreakpoints,
+	trackSimilarErrors,
 	marshalMinimalJSON bool,
+	sourceFragmentRadius,
+	nextErrorIndex int,
 ) {
 	c.SetCaptureCaller(captureCaller)
 	c.SetCaptureProcess(captureProcess)

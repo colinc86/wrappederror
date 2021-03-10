@@ -49,7 +49,8 @@ func TestCallerFile(t *testing.T) {
 }
 
 func TestCallerFunction(t *testing.T) {
-	if testCallers.c0.Function != "github.com/colinc86/wrappederror.setupCallerTests" {
+	if testCallers.c0.Function !=
+		"github.com/colinc86/wrappederror.setupCallerTests" {
 		t.Errorf("Incorrect function name: %s\n", testCallers.c0.Function)
 	}
 }

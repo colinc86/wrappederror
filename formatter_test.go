@@ -1,137 +1,280 @@
 package wrappederror
 
 import (
+	"fmt"
 	"testing"
 )
 
-func TestFindIndexes_1(t *testing.T) {
-	f := newFormatter()
-	ef := ".  .  .  "
-	idx := f.findIndexes(ef, ".")
+var testFormatter = newFormatter()
 
-	if len(idx) != 3 {
-		t.Fatalf("Expected 3 elements but received %d.\n", len(idx))
+// Tests
+
+func TestFormatterFormat(t *testing.T) {
+	ef := ""
+	ex := ""
+	t.Run("Formatter format 0", func(t *testing.T) {
+		testFormatterFormat(t, testFormatter, *testErrors.e1, ef, ex)
+	})
+
+	ef = fmt.Sprintf("%s", ErrorFormatTokenChain)
+	ex = testErrors.e1.Error()
+	t.Run("Formatter format 1", func(t *testing.T) {
+		testFormatterFormat(t, testFormatter, *testErrors.e1, ef, ex)
+	})
+
+	ef = fmt.Sprintf(" %s", ErrorFormatTokenChain)
+	ex = " " + testErrors.e1.Error()
+	t.Run("Formatter format 2", func(t *testing.T) {
+		testFormatterFormat(t, testFormatter, *testErrors.e1, ef, ex)
+	})
+
+	ef = fmt.Sprintf("%s ", ErrorFormatTokenChain)
+	ex = testErrors.e1.Error() + " "
+	t.Run("Formatter format 3", func(t *testing.T) {
+		testFormatterFormat(t, testFormatter, *testErrors.e1, ef, ex)
+	})
+
+	ef = fmt.Sprintf("%s%s", ErrorFormatTokenChain, ErrorFormatTokenChain)
+	ex = testErrors.e1.Error() + testErrors.e1.Error()
+	t.Run("Formatter format 4", func(t *testing.T) {
+		testFormatterFormat(t, testFormatter, *testErrors.e1, ef, ex)
+	})
+
+	ef = fmt.Sprintf("%s %s", ErrorFormatTokenChain, ErrorFormatTokenChain)
+	ex = testErrors.e1.Error() + " " + testErrors.e1.Error()
+	t.Run("Formatter format 5", func(t *testing.T) {
+		testFormatterFormat(t, testFormatter, *testErrors.e1, ef, ex)
+	})
+}
+
+func testFormatterFormat(t *testing.T, f *formatter, e Error, ef, ex string) {
+	if f.format(e, ef) != ex {
+		t.Errorf("Expected \"%s\" but received \"%s\".\n", ex, f.format(e, ef))
 	}
 }
 
-func TestFindIndexes_2(t *testing.T) {
-	f := newFormatter()
-	ef := "asdf"
-	idx := f.findIndexes(ef, "asdfj")
+func TestFormatterFindIndexes(t *testing.T) {
+	ef := ""
+	s := ""
+	ex := []int{}
+	t.Run("Formatter find indexes 0", func(t *testing.T) {
+		testFormatterFindIndexes(t, testFormatter, ef, s, ex)
+	})
 
-	if len(idx) != 0 {
-		t.Fatalf("Expected 0 elements but received %d.\n", len(idx))
+	ef = ""
+	s = "a"
+	ex = []int{}
+	t.Run("Formatter find indexes 1", func(t *testing.T) {
+		testFormatterFindIndexes(t, testFormatter, ef, s, ex)
+	})
+
+	ef = "a"
+	s = ""
+	ex = []int{}
+	t.Run("Formatter find indexes 2", func(t *testing.T) {
+		testFormatterFindIndexes(t, testFormatter, ef, s, ex)
+	})
+
+	ef = "a"
+	s = "a"
+	ex = []int{0}
+	t.Run("Formatter find indexes 3", func(t *testing.T) {
+		testFormatterFindIndexes(t, testFormatter, ef, s, ex)
+	})
+
+	ef = "aa"
+	s = "a"
+	ex = []int{0, 1}
+	t.Run("Formatter find indexes 4", func(t *testing.T) {
+		testFormatterFindIndexes(t, testFormatter, ef, s, ex)
+	})
+
+	ef = "aa"
+	s = "aa"
+	ex = []int{0}
+	t.Run("Formatter find indexes 5", func(t *testing.T) {
+		testFormatterFindIndexes(t, testFormatter, ef, s, ex)
+	})
+
+	ef = "aaaa"
+	s = "aa"
+	ex = []int{0, 1, 2}
+	t.Run("Formatter find indexes 6", func(t *testing.T) {
+		testFormatterFindIndexes(t, testFormatter, ef, s, ex)
+	})
+
+	ef = "aa"
+	s = "aaaa"
+	ex = []int{}
+	t.Run("Formatter find indexes 7", func(t *testing.T) {
+		testFormatterFindIndexes(t, testFormatter, ef, s, ex)
+	})
+}
+
+func testFormatterFindIndexes(
+	t *testing.T,
+	f *formatter,
+	ef, s string,
+	ex []int,
+) {
+	o := f.findIndexes(ef, s)
+	if len(o) != len(ex) {
+		t.Errorf("Expected length %d but received %d.\n", len(ex), len(o))
+	}
+	for i, v := range o {
+		if v != ex[i] {
+			t.Errorf("Expected value %d but received %d.\n", ex[i], v)
+		}
 	}
 }
 
-func TestReplaceTokens_1(t *testing.T) {
-	f := newFormatter()
-	ef := "asdf"
-	efc, tokens := f.replaceTokens(ef, nil)
+func TestFormatterReplaceTokens(t *testing.T) {
+	ef := ""
+	var idx []int
+	exs := ""
+	var ext []ErrorFormatToken
+	t.Run("Formatter replace tokens 0", func(t *testing.T) {
+		testFormatterReplaceTokens(t, testFormatter, ef, idx, exs, ext)
+	})
 
-	if efc != ef {
-		t.Errorf("Expected %s but received %s.\n", ef, efc)
+	ef = fmt.Sprintf("%s", ErrorFormatTokenContext)
+	idx = []int{0}
+	exs = "%+v"
+	ext = []ErrorFormatToken{ErrorFormatTokenContext}
+	t.Run("Formatter replace tokens 1", func(t *testing.T) {
+		testFormatterReplaceTokens(t, testFormatter, ef, idx, exs, ext)
+	})
+
+	ef = fmt.Sprintf(" %s", ErrorFormatTokenInner)
+	idx = []int{1}
+	exs = " %+v"
+	ext = []ErrorFormatToken{ErrorFormatTokenInner}
+	t.Run("Formatter replace tokens 1", func(t *testing.T) {
+		testFormatterReplaceTokens(t, testFormatter, ef, idx, exs, ext)
+	})
+
+	ef = fmt.Sprintf("%s ", ErrorFormatTokenChain)
+	idx = []int{0}
+	exs = "%s "
+	ext = []ErrorFormatToken{ErrorFormatTokenChain}
+	t.Run("Formatter replace tokens 2", func(t *testing.T) {
+		testFormatterReplaceTokens(t, testFormatter, ef, idx, exs, ext)
+	})
+
+	ef = fmt.Sprintf("%s%s", ErrorFormatTokenFile, ErrorFormatTokenFunction)
+	idx = []int{0, 8}
+	exs = "%s%s"
+	ext = []ErrorFormatToken{ErrorFormatTokenFile, ErrorFormatTokenFunction}
+	t.Run("Formatter replace tokens 3", func(t *testing.T) {
+		testFormatterReplaceTokens(t, testFormatter, ef, idx, exs, ext)
+	})
+
+	ef = fmt.Sprintf("%s %s", ErrorFormatTokenLine, ErrorFormatTokenTrace)
+	idx = []int{0, 9}
+	exs = "%d %s"
+	ext = []ErrorFormatToken{ErrorFormatTokenLine, ErrorFormatTokenTrace}
+	t.Run("Formatter replace tokens 4", func(t *testing.T) {
+		testFormatterReplaceTokens(t, testFormatter, ef, idx, exs, ext)
+	})
+
+	ef = fmt.Sprintf(
+		"%s %s",
+		ErrorFormatTokenStack,
+		ErrorFormatTokenSourceLowerLine,
+	)
+	idx = []int{0, 10}
+	exs = "%s " + fmt.Sprintf("%s", ErrorFormatTokenSourceLowerLine)
+	ext = []ErrorFormatToken{ErrorFormatTokenStack}
+	t.Run("Formatter replace tokens 5", func(t *testing.T) {
+		testFormatterReplaceTokens(t, testFormatter, ef, idx, exs, ext)
+	})
+}
+
+func testFormatterReplaceTokens(
+	t *testing.T,
+	f *formatter,
+	ef string,
+	idx []int,
+	exs string,
+	ext []ErrorFormatToken,
+) {
+	os, ot := f.replaceTokens(ef, idx)
+	if os != exs {
+		t.Errorf("Expected \"%s\" but received \"%s\".\n", exs, os)
 	}
-
-	if len(tokens) > 0 {
-		t.Errorf("Expected 0 tokens but received %d.\n", len(tokens))
+	if len(ot) != len(ext) {
+		t.Errorf("Expected length %d but received %d.\n", len(ext), len(ot))
+	}
+	for i, v := range ot {
+		if v != ext[i] {
+			t.Errorf("Expected token \"%s\" but received \"%s\".\n", ext[i], v)
+		}
 	}
 }
 
-func TestReplaceTokens_2(t *testing.T) {
-	f := newFormatter()
-	ef := "${{LIN}}"
-	efc, tokens := f.replaceTokens(ef, []int{0})
+func TestFormatterReplaceToken(t *testing.T) {
+	ef := ""
+	idx := 0
+	exs := ""
+	var ext ErrorFormatToken
+	t.Run("Formatter replace token 0", func(t *testing.T) {
+		testFormatterReplaceToken(t, testFormatter, ef, idx, exs, ext)
+	})
 
-	if efc != "%d" {
-		t.Errorf("Incorrect error format string: %s.\n", efc)
-	}
+	ef = fmt.Sprintf("%s", ErrorFormatTokenSourceLowerLine)
+	idx = 0
+	exs = "%d"
+	ext = ErrorFormatTokenSourceLowerLine
+	t.Run("Formatter replace token 1", func(t *testing.T) {
+		testFormatterReplaceToken(t, testFormatter, ef, idx, exs, ext)
+	})
 
-	if len(tokens) != 1 {
-		t.Errorf("Expected 1 token but received %d.\n", len(tokens))
-	}
+	ef = fmt.Sprintf(" %s", ErrorFormatTokenSourceUpperLine)
+	idx = 1
+	exs = " %d"
+	ext = ErrorFormatTokenSourceUpperLine
+	t.Run("Formatter replace token 2", func(t *testing.T) {
+		testFormatterReplaceToken(t, testFormatter, ef, idx, exs, ext)
+	})
+
+	ef = fmt.Sprintf("%s ", ErrorFormatTokenSource)
+	idx = 0
+	exs = "%s "
+	ext = ErrorFormatTokenSource
+	t.Run("Formatter replace token 3", func(t *testing.T) {
+		testFormatterReplaceToken(t, testFormatter, ef, idx, exs, ext)
+	})
+
+	ef = fmt.Sprintf("%s %s", ErrorFormatTokenTime, ErrorFormatTokenDuration)
+	idx = 9
+	exs = fmt.Sprintf("%s ", ErrorFormatTokenTime) + "%f"
+	ext = ErrorFormatTokenDuration
+	t.Run("Formatter replace token 4", func(t *testing.T) {
+		testFormatterReplaceToken(t, testFormatter, ef, idx, exs, ext)
+	})
+
+	ef = "asdfasdfasdf"
+	idx = 0
+	exs = "asdfasdfasdf"
+	ext = ""
+	t.Run("Formatter replace token 5", func(t *testing.T) {
+		testFormatterReplaceToken(t, testFormatter, ef, idx, exs, ext)
+	})
 }
 
-func TestReplaceTokens_3(t *testing.T) {
-	f := newFormatter()
-	ef := " ${{LIN}}"
-	efc, tokens := f.replaceTokens(ef, []int{0})
-
-	if efc != ef {
-		t.Errorf("Incorrect error format string: %s.\n", efc)
+func testFormatterReplaceToken(
+	t *testing.T,
+	f *formatter,
+	ef string,
+	idx int,
+	exs string,
+	ext ErrorFormatToken,
+) {
+	os, ot := f.replaceToken(ef, idx)
+	if os != exs {
+		t.Errorf("Expected \"%s\" but received \"%s\".\n", exs, os)
 	}
-
-	if len(tokens) != 0 {
-		t.Errorf("Expected 0 tokens but received %d.\n", len(tokens))
-	}
-}
-
-func TestReplaceTokens_4(t *testing.T) {
-	f := newFormatter()
-	ef := "${{LIN}} "
-	efc, tokens := f.replaceTokens(ef, []int{0})
-
-	if efc != "%d " {
-		t.Errorf("Incorrect error format string: %s.\n", efc)
-	}
-
-	if len(tokens) != 1 {
-		t.Errorf("Expected 1 token but received %d.\n", len(tokens))
-	}
-}
-
-func TestReplaceTokens_5(t *testing.T) {
-	f := newFormatter()
-	ef := "${{LIN}}${{LIN}}"
-	efc, tokens := f.replaceTokens(ef, []int{0, 8})
-
-	if efc != "%d%d" {
-		t.Errorf("Incorrect error format string: %s.\n", efc)
-	}
-
-	if len(tokens) != 2 {
-		t.Errorf("Expected 1 token but received %d.\n", len(tokens))
-	}
-}
-
-func TestReplaceToken_1(t *testing.T) {
-	f := newFormatter()
-	ef := "${{FIL}}"
-	efc, token := f.replaceToken(ef, 0)
-
-	if efc != "%s" {
-		t.Errorf("Incorrect error format string: %s\n", efc)
-	}
-
-	if token != ErrorFormatTokenFile {
-		t.Errorf("Incorrect token: %s\n", token)
-	}
-}
-
-func TestReplaceToken_2(t *testing.T) {
-	f := newFormatter()
-	ef := "${{FIL}}  "
-	efc, token := f.replaceToken(ef, 1)
-
-	if efc != ef {
-		t.Errorf("Incorrect error format string: %s\n", efc)
-	}
-
-	if token != errorFormatTokenNone {
-		t.Errorf("Incorrect token: %s\n", token)
-	}
-}
-
-func TestReplaceToken_3(t *testing.T) {
-	f := newFormatter()
-	ef := "${{FIL}}"
-	efc, token := f.replaceToken(ef, 1)
-
-	if efc != ef {
-		t.Errorf("Incorrect error format string: %s\n", efc)
-	}
-
-	if token != errorFormatTokenNone {
-		t.Errorf("Incorrect token: %s\n", token)
+	if ot != ext {
+		t.Errorf("Expected token \"%s\" but received \"%s\".\n", ext, ot)
 	}
 }

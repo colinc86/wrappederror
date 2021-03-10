@@ -13,6 +13,7 @@ func TestMain(m *testing.M) {
 	setupCallerTests()
 	setupConfigurationTests()
 	setupErrorTests()
+	setupErrorSeverityTests()
 	os.Exit(m.Run())
 }
 
@@ -90,7 +91,7 @@ func TestErrorFormat(t *testing.T) {
 	t.Run("Error format 2", func(t *testing.T) { testErrorFormat(t, e, ef, es) })
 }
 
-func testErrorFormat(t *testing.T, e *Error, ef string, s string) {
+func testErrorFormat(t *testing.T, e *Error, ef, s string) {
 	if e.Format(ef) != s {
 		t.Errorf("Expected \"%s\" but received \"%s\".\n", s, e.Format(ef))
 	}
@@ -435,7 +436,7 @@ func BenchmarkNewError_NoCallerNoProcess(b *testing.B) {
 }
 
 func BenchmarkNewError_NoFeatures(b *testing.B) {
-	packageState.config.Set(false, false, false, 0, true, 1, false, true)
+	packageState.config.Set(false, false, false, true, false, true, 0, 1)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = New(nil, "")
