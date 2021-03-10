@@ -44,9 +44,7 @@ func newJSONErrorOrWError(err error) interface{} {
 		return nil
 	}
 
-	if we, ok := err.(Error); ok {
-		return newJSONWError(we)
-	} else if we, ok := err.(*Error); ok {
+	if we, ok := err.(*Error); ok {
 		return newJSONWError(*we)
 	}
 
