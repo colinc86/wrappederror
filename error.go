@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// Error structure string constants.
 var (
 	errorChainDelimiter            string = ": "
 	errorTraceFirstItemDecoration  string = "┌"

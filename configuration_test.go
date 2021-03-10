@@ -2,8 +2,19 @@ package wrappederror
 
 import "testing"
 
+var testConfigurations struct {
+	c0 *Configuration
+}
+
+func setupConfigurationTests() {
+	testConfigurations.c0 = newConfiguration()
+}
+
+// Tests
+
 func TestNewConfiguration(t *testing.T) {
-	c := newConfiguration()
+	testConfigurations.c0 = newConfiguration()
+	c := testConfigurations.c0
 	t.Run("Capture caller", func(t *testing.T) { testConfigurationValue(t, c.captureCaller, true) })
 	t.Run("Capture process", func(t *testing.T) { testConfigurationValue(t, c.captureProcess, true) })
 	t.Run("Capture source fragments", func(t *testing.T) { testConfigurationValue(t, c.captureSourceFragments, true) })
@@ -15,7 +26,7 @@ func TestNewConfiguration(t *testing.T) {
 }
 
 func TestConfigurationSet(t *testing.T) {
-	c := newConfiguration()
+	c := testConfigurations.c0
 	c.Set(false, false, false, 0, false, 0, false, false)
 	t.Run("Capture caller", func(t *testing.T) { testConfigurationValue(t, c.captureCaller, false) })
 	t.Run("Capture process", func(t *testing.T) { testConfigurationValue(t, c.captureProcess, false) })
@@ -34,7 +45,8 @@ func testConfigurationValue(t *testing.T, v *safeValue, ev interface{}) {
 }
 
 func TestConfigurationGetAndIncrementNextErrorIndex(t *testing.T) {
-	c := newConfiguration()
+	testConfigurations.c0 = newConfiguration()
+	c := testConfigurations.c0
 	t.Run("Default error index", func(t *testing.T) { testConfigurationNextErrorIndex(t, c, 1) })
 	t.Run("Next error index", func(t *testing.T) { testConfigurationNextErrorIndex(t, c, 2) })
 	t.Run("Third error index", func(t *testing.T) { testConfigurationNextErrorIndex(t, c, 3) })

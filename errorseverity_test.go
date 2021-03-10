@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestErrorSeverityCreate_1(t *testing.T) {
+func TestNewErrorSeverity(t *testing.T) {
 	_, err := NewErrorSeverity("Test Severity", "abc", ErrorSeverityLevelLow)
 	if err != nil {
 		t.Errorf("Unexpected error: %s\n", err)

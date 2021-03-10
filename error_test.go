@@ -10,6 +10,8 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	setupCallerTests()
+	setupConfigurationTests()
 	setupErrorTests()
 	os.Exit(m.Run())
 }

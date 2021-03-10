@@ -21,9 +21,6 @@ const (
 	ErrorSeverityLevelSevere   ErrorSeverityLevel = "severe"
 )
 
-// errorSeverityUnknown is an unknown severity level.
-var errorSeverityUnknown = ErrorSeverity{"", nil, ErrorSeverityLevelNone}
-
 // ErrorSeverity types define an error severity with a title, level, and a
 // regular expression that is used to find matches in an error's `Error` method
 // output.
@@ -48,17 +45,17 @@ func NewErrorSeverity(
 	title string,
 	regex string,
 	level ErrorSeverityLevel,
-) (ErrorSeverity, error) {
+) (*ErrorSeverity, error) {
 	if len(regex) == 0 {
-		return errorSeverityUnknown, ErrRegexRequired
+		return nil, ErrRegexRequired
 	}
 
 	r, err := regexp.Compile(regex)
 	if err != nil {
-		return errorSeverityUnknown, err
+		return nil, err
 	}
 
-	return ErrorSeverity{
+	return &ErrorSeverity{
 		Title: title,
 		Regex: r,
 		Level: level,
@@ -98,7 +95,7 @@ func (s ErrorSeverity) match(err error) float64 {
 }
 
 // equals returns whether or not the receiver is equal to severity.
-func (s ErrorSeverity) equals(severity ErrorSeverity) bool {
+func (s ErrorSeverity) equals(severity *ErrorSeverity) bool {
 	return s.Title == severity.Title &&
 		s.Regex.String() == severity.Regex.String() &&
 		s.Level == severity.Level

@@ -44,21 +44,18 @@ func (s state) getSimilarErrorCount(err error) int {
 }
 
 // registerSeverity registers the severity with the state's severity table.
-func (s state) registerSeverity(severity ErrorSeverity) error {
+func (s state) registerSeverity(severity *ErrorSeverity) error {
 	return s.serverityTable.register(severity)
 }
 
 // unregisterSeverity unregisters the severity from the state's severity table.
-func (s state) unregisterSeverity(severity ErrorSeverity) {
+func (s state) unregisterSeverity(severity *ErrorSeverity) {
 	s.serverityTable.unregister(severity)
 }
 
 // getBestMatchSeverity gets the best match severity for the given error.
 func (s state) getBestMatchSeverity(err error) *ErrorSeverity {
-	if s := s.serverityTable.bestMatch(err); s != errorSeverityUnknown {
-		return &s
-	}
-	return nil
+	return s.serverityTable.bestMatch(err)
 }
 
 // getDurationSinceLaunch gets the current duration since the process was

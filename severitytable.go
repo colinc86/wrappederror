@@ -11,7 +11,7 @@ var ErrSeverityAlreadyRegistered = errors.New("severity already registered")
 
 // severityTable keeps track of error severities.
 type severityTable struct {
-	severities      []ErrorSeverity
+	severities      []*ErrorSeverity
 	severitiesMutex *sync.RWMutex
 }
 
@@ -28,7 +28,7 @@ func newSeverityTable() *severityTable {
 
 // register registers a new error severity. If the severity already exists, then
 // it returns an ErrSeverityAlreadyRegistered error.
-func (t *severityTable) register(severity ErrorSeverity) error {
+func (t *severityTable) register(severity *ErrorSeverity) error {
 	t.severitiesMutex.Lock()
 	defer t.severitiesMutex.Unlock()
 
@@ -43,7 +43,7 @@ func (t *severityTable) register(severity ErrorSeverity) error {
 }
 
 // unregister unregisters the severity.
-func (t *severityTable) unregister(severity ErrorSeverity) {
+func (t *severityTable) unregister(severity *ErrorSeverity) {
 	t.severitiesMutex.Lock()
 	defer t.severitiesMutex.Unlock()
 
@@ -60,12 +60,12 @@ func (t *severityTable) unregister(severity ErrorSeverity) {
 //
 // It walks the entire error chain beginning with err and finds the best match
 // error severity.
-func (t *severityTable) bestMatch(err error) ErrorSeverity {
+func (t *severityTable) bestMatch(err error) *ErrorSeverity {
 	t.severitiesMutex.RLock()
 	defer t.severitiesMutex.RUnlock()
 
 	bestMatch := 0.0
-	bestMatchErrorSeverity := errorSeverityUnknown
+	var bestMatchErrorSeverity *ErrorSeverity
 
 	e := err
 	for e != nil {
