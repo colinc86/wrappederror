@@ -1,4 +1,6 @@
-<div style="text-align:center"><img src="assets/wrappederror.png" /></div>
+<p align="center">
+  <img width="400" height="296" src="assets/wrappederror.png">
+</p>
 
 # Package wrappederror
 
