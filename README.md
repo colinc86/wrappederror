@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="400" height="296" src="assets/wrappederror.png">
+  <img width="300" height="300" src="assets/wrappederror.png">
 </p>
 
 # Package wrappederror
